@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Quality Ops Dashboard</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div>
+      <h1>Quality Ops Dashboard</h1>
+      <p class="subtitle">Offline-ready tracker with Pareto, Fishbone, and CAPA tools</p>
+    </div>
+    <button id="themeToggle" class="btn secondary" aria-label="Toggle dark mode">🌙 Dark mode</button>
+  </header>
+
+  <main class="layout">
+    <section class="panel">
+      <h2>1) Upload CSV files</h2>
+      <p class="help">Upload both files to enable analysis. Data never leaves this browser.</p>
+      <div class="upload-grid">
+        <label class="upload-box">
+          <span>Defects / Findings CSV</span>
+          <input id="defectsFile" type="file" accept=".csv" />
+        </label>
+        <label class="upload-box">
+          <span>Opportunities Tracker CSV</span>
+          <input id="oppsFile" type="file" accept=".csv" />
+        </label>
+      </div>
+      <div id="fileStatus" class="status">Waiting for files…</div>
+    </section>
+
+    <section class="panel">
+      <h2>2) Column mapping</h2>
+      <p class="help">Choose the columns in your files to drive each analysis.</p>
+      <div class="mapping-grid">
+        <label>Defect Category (for Pareto)
+          <select id="defectCategorySelect"></select>
+        </label>
+        <label>Defect Root Cause (for Fishbone)
+          <select id="defectCauseSelect"></select>
+        </label>
+        <label>Defect Count (optional numeric)
+          <select id="defectCountSelect"></select>
+        </label>
+        <label>Opportunity ID
+          <select id="oppIdSelect"></select>
+        </label>
+        <label>Opportunity Title / Issue
+          <select id="oppTitleSelect"></select>
+        </label>
+        <label>CAPA Owner
+          <select id="oppOwnerSelect"></select>
+        </label>
+        <label>Due Date
+          <select id="oppDueDateSelect"></select>
+        </label>
+        <label>Status
+          <select id="oppStatusSelect"></select>
+        </label>
+      </div>
+      <button id="runAnalysis" class="btn">Run analysis</button>
+    </section>
+
+    <section class="panel">
+      <h2>Pareto Analysis</h2>
+      <p class="help">Highlights the categories causing most issues (80/20 focus).</p>
+      <canvas id="paretoCanvas" width="1100" height="420"></canvas>
+      <div id="paretoSummary" class="summary"></div>
+    </section>
+
+    <section class="panel">
+      <h2>Fishbone Analysis</h2>
+      <p class="help">Auto-groups root causes into common fishbone branches.</p>
+      <div class="fishbone-grid" id="fishboneGrid"></div>
+    </section>
+
+    <section class="panel">
+      <h2>CAPA Plan (from Opportunities Tracker)</h2>
+      <div class="table-wrap">
+        <table id="capaTable">
+          <thead>
+            <tr>
+              <th>Opportunity</th>
+              <th>Issue</th>
+              <th>Owner</th>
+              <th>Containment</th>
+              <th>Corrective Action</th>
+              <th>Preventive Action</th>
+              <th>Due Date</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <small>Tip: use CSV headers like Category, Root Cause, Count, Owner, Due Date, and Status for faster setup.</small>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>
