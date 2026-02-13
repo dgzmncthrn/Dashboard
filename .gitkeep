@@ -1,0 +1,2879 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>QA Dashboard (Offline)</title>
+<style>
+  :root{
+    --bg:#f4f6f9;
+    --card:#ffffff;
+    --text:#13213c;
+    --muted:#5b6b86;
+    --accent:#243a8f;
+    --accent2:#d15600;
+    --border:#d9e2ef;
+    --shadow:0 2px 10px rgba(0,0,0,.06);
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:Segoe UI,Arial,sans-serif;background:var(--bg);color:var(--text)}
+  header{background:linear-gradient(180deg,#ffffff,#f8fbff);border-bottom:1px solid var(--border)}
+  .top{max-width:1750px;margin:0 auto;padding:16px 18px}
+  h1{margin:0;font-size:18px;color:var(--accent)}
+  .sub{margin-top:6px;font-size:12px;color:var(--muted);line-height:1.35}
+
+  .wrap{max-width:1750px;margin:0 auto;padding:14px 18px 18px}
+  .card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:12px;box-shadow:var(--shadow)}
+  .card h2{margin:0 0 10px;font-size:13px;color:var(--accent2);letter-spacing:.2px}
+
+  .controls{display:flex;gap:10px;flex-wrap:wrap;align-items:end}
+  label{font-size:12px;color:var(--muted);display:block;margin-bottom:4px}
+  input[type="file"]{padding:8px;border:1px solid var(--border);border-radius:12px;background:#fff;min-width:320px}
+  button{padding:9px 12px;border-radius:12px;border:0;background:var(--accent);color:#fff;cursor:pointer;font-weight:600}
+  button.secondary{background:#445}
+  button.danger{background:#b00020}
+  button.ghost{background:#fff;color:var(--text);border:1px solid var(--border)}
+  button:disabled{opacity:.6;cursor:not-allowed}
+
+  .row{display:flex;gap:12px;flex-wrap:wrap;align-items:center;margin-top:10px}
+  .mono{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:11px;color:var(--muted)}
+  .pill{font-size:11px;padding:5px 9px;border-radius:999px;border:1px solid var(--border);color:var(--muted);background:#fff}
+  .pill.ok{border-color:#bfe8c2;background:#f2fff3;color:#1f5a24}
+
+  .tabs{display:flex;gap:8px;flex-wrap:wrap;margin:14px 0}
+  .tab{padding:8px 10px;border-radius:12px;border:1px solid var(--border);background:#fff;color:var(--text);cursor:pointer;font-size:12px;font-weight:700}
+  .tab.active{background:var(--accent);color:#fff;border-color:transparent}
+
+  .layout{display:grid;grid-template-columns:360px 1fr;gap:12px;align-items:start}
+  @media (max-width:1200px){.layout{grid-template-columns:1fr}}
+
+  .filtersCard{position:sticky;top:10px}
+  @media (max-width:1200px){.filtersCard{position:static}}
+  .filtersHead{display:flex;align-items:center;justify-content:space-between;gap:10px}
+  .filtersHead .title{font-size:12px;color:var(--muted)}
+  .filtersActions{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}
+  .miniBtn{padding:7px 9px;font-size:11px;border-radius:12px;border:1px solid var(--border);background:#fff;cursor:pointer;color:var(--text);font-weight:700}
+
+  .filterBox{border:1px solid var(--border);border-radius:14px;background:#fff;overflow:hidden;margin-top:10px}
+  .filterHead{display:flex;align-items:center;justify-content:space-between;padding:10px 10px 8px;cursor:pointer;user-select:none}
+  .filterTitle{font-size:12px;color:var(--muted)}
+  .filterBadge{font-size:11px;color:#fff;background:var(--accent);border-radius:999px;padding:3px 7px;min-width:42px;text-align:center}
+  .filterBody{border-top:1px solid var(--border);padding:10px;display:none}
+  .filterBody.open{display:block}
+  .filterActionsInner{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px}
+  .filterSearch{width:100%;padding:8px 10px;border-radius:12px;border:1px solid var(--border);font-size:12px;margin-bottom:8px}
+  .checkList{max-height:220px;overflow:auto;padding-right:4px}
+  .checkItem{display:flex;align-items:center;gap:8px;padding:6px 2px;font-size:12px}
+  .checkItem input{transform:scale(1.05)}
+
+  .dateCols{display:grid;grid-template-columns:1fr;gap:10px}
+  .dateColTitle{font-size:12px;color:var(--muted);margin-bottom:6px}
+
+  .note{font-size:12px;color:var(--muted);line-height:1.35}
+  .tableWrap{max-height:540px;overflow:auto;border:1px solid var(--border);border-radius:14px;background:#fff}
+  table{width:100%;border-collapse:collapse;font-size:12px}
+  th,td{padding:8px 10px;border-bottom:1px solid var(--border);text-align:left;vertical-align:top;white-space:nowrap}
+  th{position:sticky;top:0;background:#fff;z-index:1}
+
+  .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+  @media (max-width:1200px){.grid-2,.grid-3{grid-template-columns:1fr}}
+
+  .kpis{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+  @media (max-width:1200px){.kpis{grid-template-columns:1fr}}
+  .kpi{border:1px solid var(--border);border-radius:14px;padding:10px;background:#fff}
+  .kpi .label{font-size:11px;color:var(--muted)}
+  .kpi .value{font-size:20px;font-weight:800;margin-top:4px;color:var(--accent)}
+  .kpi .subv{margin-top:4px;font-size:11px;color:var(--muted)}
+
+  .sym{font-weight:900}
+  .symUp{color:#1f5a24}
+  .symDown{color:#b00020}
+  .symFlat{color:#5b6b86}
+
+  .panel{display:none}
+  .panel.active{display:block}
+
+  #analysisBox{
+    margin-top:10px;width:100%;min-height:240px;padding:10px;
+    border:1px solid var(--border);border-radius:14px;font-size:12px;line-height:1.35;resize:vertical;
+  }
+
+  /* chart */
+  .chartRow{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+  .select{
+    padding:8px 10px;border-radius:12px;border:1px solid var(--border);
+    background:#fff;font-size:12px;color:var(--text);min-width:220px;
+  }
+  .canvasWrap{
+    border:1px solid var(--border);border-radius:14px;background:#fff;overflow:hidden;
+    padding:10px; position:relative;
+  }
+  canvas{width:100%;height:360px;display:block}
+  .smallTableWrap{max-height:360px;overflow:auto;border:1px solid var(--border);border-radius:14px;background:#fff}
+
+  /* tooltip */
+  .tooltip{
+    position:absolute; pointer-events:none; display:none;
+    background:#fff; border:1px solid var(--border); border-radius:12px;
+    box-shadow:var(--shadow); padding:8px 10px; font-size:12px; color:var(--text);
+    max-width:320px;
+  }
+  .tooltip .tTitle{font-weight:800;color:var(--accent);margin-bottom:4px}
+  .tooltip .tRow{color:var(--muted);line-height:1.25}
+</style>
+</head>
+
+<body>
+<header>
+  <div class="top">
+    <h1>QA Dashboard (Offline)</h1>
+    <div class="sub">
+      Upload CSV or import JSON. Filters update instantly (no Apply button).
+      <br/>
+      <b>Date filtering rule (AND mode):</b> If you select Year/Month/WED, the row must match ALL selected levels. (Unselected levels are ignored.)
+      <br/>
+      <b>Multi-select:</b> You can select any mix of Years + Months + WEDs without lists disappearing.
+      <br/>
+      <b>NEW:</b> Upload Opps Tracker CSV to unlock “Opps Tracker (Errors Deep Dive)” tab (Parameter/Sub-Parameter).
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <div class="card">
+    <h2>Load Data</h2>
+
+    <div class="controls">
+      <div>
+        <label>Upload QA Scorecard file (CSV/TSV)</label>
+        <input id="fileInput" type="file" accept=".csv,.tsv,.txt,text/csv,text/plain"/>
+      </div>
+
+      <div>
+        <label>Upload Opps Tracker file (CSV/TSV)</label>
+        <input id="oppsInput" type="file" accept=".csv,.tsv,.txt,text/csv,text/plain"/>
+      </div>
+
+      <button id="btnReset" class="secondary" disabled>Reset Filters</button>
+      <button id="btnClear" class="danger" disabled>Clear Data</button>
+
+      <button id="btnExportJSON" class="ghost" disabled>Export Data (JSON)</button>
+      <button id="btnImportJSON" class="ghost">Import Data (JSON)</button>
+      <input id="importJSONInput" type="file" accept=".json,application/json" style="display:none"/>
+    </div>
+
+    <div class="row">
+      <div id="status" class="mono"></div>
+      <div id="saveBadge" class="pill" style="display:none"></div>
+      <div id="oppsBadge" class="pill" style="display:none"></div>
+    </div>
+
+    <div class="note" style="margin-top:10px">
+      <b>Tip (Excel):</b> Save As → <span class="mono">CSV UTF-8 (Comma delimited)</span>. (This HTML cannot read .XLSX directly.)
+    </div>
+  </div>
+
+  <div class="tabs" id="tabs">
+    <button class="tab active" data-tab="weekly">Weekly</button>
+    <button class="tab" data-tab="monthly">Monthly</button>
+    <button class="tab" data-tab="errors">Error Counts</button>
+    <button class="tab" data-tab="charts">Charts</button>
+    <button class="tab" data-tab="opps">Opps Tracker (Errors Deep Dive)</button>
+    <button class="tab" data-tab="details">Details</button>
+  </div>
+
+  <div class="layout">
+
+    <div class="card filtersCard">
+      <div class="filtersHead">
+        <div>
+          <div style="font-weight:900;color:var(--accent)">Filters</div>
+          <div class="title">Instant update • Multi-select • Search • Select/Deselect all</div>
+        </div>
+        <span class="pill" id="filterHint">Auto</span>
+      </div>
+
+      <div class="filtersActions">
+        <button class="miniBtn" id="btnSelectAllFilters" disabled>Select All</button>
+        <button class="miniBtn" id="btnClearAllFilters" disabled>Clear All</button>
+        <button class="miniBtn" id="btnExpandAll" disabled>Expand</button>
+        <button class="miniBtn" id="btnCollapseAll" disabled>Collapse</button>
+      </div>
+
+      <div id="filtersCol"></div>
+    </div>
+
+    <div>
+
+      <section class="panel active" id="panel-weekly">
+        <div class="card">
+          <h2>Weekly Summary</h2>
+
+          <div class="kpis">
+            <div class="kpi">
+              <div class="label">Average QA (Filtered)</div>
+              <div class="value" id="kAvgScore">—</div>
+              <div class="subv" id="kScope">—</div>
+            </div>
+            <div class="kpi">
+              <div class="label">Audit Count (Filtered)</div>
+              <div class="value" id="kAudits">0</div>
+              <div class="subv">This is the number of audits (rows), not call volume.</div>
+            </div>
+            <div class="kpi">
+              <div class="label">Date selections</div>
+              <div class="value" style="font-size:14px;color:var(--text)" id="kDateScope">—</div>
+              <div class="subv">AND mode across Year/Month/WED.</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card" style="margin-top:12px">
+          <h2>Performance Analysis (Click to Generate)</h2>
+          <div class="note">
+            Select filters first, then click Generate Analysis.
+            If you select multiple Months or multiple WEDs, the analysis will compare earliest vs latest and show movers + actions.
+          </div>
+
+          <div class="row" style="margin-top:10px; gap:8px;">
+            <button id="btnAnalyze">Generate Analysis</button>
+            <button id="btnCopyAnalysis" class="ghost" disabled>Copy</button>
+            <span class="pill" id="analysisScopePill">—</span>
+          </div>
+
+          <textarea id="analysisBox" placeholder="Click “Generate Analysis” to create a summary..."></textarea>
+        </div>
+
+        <div class="grid-2" style="margin-top:12px">
+          <div class="card">
+            <h2>Trend (Year → Month → WED) with ▲▼→</h2>
+            <div class="note">Symbols compare to the previous row. ▲ = improved score, ▼ = worse, → = same.</div>
+            <div class="tableWrap" style="margin-top:10px">
+              <table id="tblTrendYMW">
+                <thead><tr><th>Year</th><th>Month</th><th>WED</th><th>Avg QA</th><th>Audit Count</th></tr></thead>
+                <tbody></tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="card">
+            <h2>Performance by Phase (Filtered)</h2>
+            <div class="tableWrap" style="margin-top:10px">
+              <table id="tblPhaseW">
+                <thead><tr><th>Phase</th><th>Avg QA</th><th>Audit Count</th></tr></thead>
+                <tbody></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <div class="grid-3" style="margin-top:12px">
+          <div class="card">
+            <h2>Account Performance</h2>
+            <div class="tableWrap">
+              <table id="tblAccountW"><thead><tr><th>Account</th><th>Avg QA</th><th>Audit Count</th></tr></thead><tbody></tbody></table>
+            </div>
+          </div>
+          <div class="card">
+            <h2>Team Performance</h2>
+            <div class="tableWrap">
+              <table id="tblTeamW"><thead><tr><th>Team</th><th>Avg QA</th><th>Audit Count</th></tr></thead><tbody></tbody></table>
+            </div>
+          </div>
+          <div class="card">
+            <h2>Batch Performance</h2>
+            <div class="tableWrap">
+              <table id="tblBatchW"><thead><tr><th>Batch</th><th>Avg QA</th><th>Audit Count</th></tr></thead><tbody></tbody></table>
+            </div>
+          </div>
+        </div>
+
+        <div class="card" style="margin-top:12px">
+          <h2>CSR Summary (Average QA + Parameter Averages)</h2>
+          <div class="note">
+            Parameter averages include <b>0 scores</b> (fails) and treat blanks as <b>0</b>.
+            Authentication FAIL counts audits where any <span class="mono">Auth_Q*</span> is TRUE.
+          </div>
+          <div class="tableWrap" style="margin-top:10px">
+            <table id="tblCSRParam">
+              <thead>
+                <tr>
+                  <th>CSR</th>
+                  <th>Audit Count</th>
+                  <th>Average QA</th>
+                  <th>Target</th>
+                  <th>Passing Rate</th>
+                  <th>Authentication FAIL</th>
+
+                  <th>Greeting</th>
+                  <th>Authentication</th>
+                  <th>Professionalism</th>
+                  <th>Attentiveness</th>
+                  <th>USE TIME / HOLD</th>
+                  <th>PRODUCT KNOWLEDGE</th>
+                  <th>SYSTEM KNOWLEDGE</th>
+                  <th>DOCUMENTATION</th>
+                  <th>Call Resolution</th>
+                  <th>Creating Work</th>
+                  <th>Transfer / End</th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+              <tfoot></tfoot>
+            </table>
+          </div>
+        </div>
+
+        <div class="card" style="margin-top:12px">
+          <h2>L4 CSR Call Set (Call 1 / Call 2 / Call 3 + Average + Total Errors)</h2>
+          <div class="note">Respects all filters + date selections. Batch = L4. “Total Errors” sums all EC columns for included rows.</div>
+          <div class="tableWrap" style="margin-top:10px">
+            <table id="tblL4Calls">
+              <thead>
+                <tr>
+                  <th>CSR Name</th>
+                  <th>Account</th>
+                  <th>Batch</th>
+                  <th>Team</th>
+                  <th>Phase</th>
+                  <th>Year</th>
+                  <th>Month</th>
+                  <th>WED</th>
+                  <th>Call 1 QA</th>
+                  <th>Call 2 QA</th>
+                  <th>Call 3 QA</th>
+                  <th>Average</th>
+                  <th>Total Errors</th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </div>
+
+      </section>
+
+      <section class="panel" id="panel-monthly">
+        <div class="card">
+          <h2>Monthly Summary (Year → Month) with ▲▼→</h2>
+          <div class="note">Symbols compare to the previous month row.</div>
+          <div class="tableWrap" style="margin-top:10px">
+            <table id="tblMonthly">
+              <thead><tr><th>Year</th><th>Month</th><th>Avg QA</th><th>Audit Count</th></tr></thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="grid-3" style="margin-top:12px">
+          <div class="card">
+            <h2>Account Performance</h2>
+            <div class="tableWrap">
+              <table id="tblAccountM"><thead><tr><th>Account</th><th>Avg QA</th><th>Audit Count</th></tr></thead><tbody></tbody></table>
+            </div>
+          </div>
+          <div class="card">
+            <h2>Team Performance</h2>
+            <div class="tableWrap">
+              <table id="tblTeamM"><thead><tr><th>Team</th><th>Avg QA</th><th>Audit Count</th></tr></thead><tbody></tbody></table>
+            </div>
+          </div>
+          <div class="card">
+            <h2>Batch Performance</h2>
+            <div class="tableWrap">
+              <table id="tblBatchM"><thead><tr><th>Batch</th><th>Avg QA</th><th>Audit Count</th></tr></thead><tbody></tbody></table>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel" id="panel-errors">
+        <div class="grid-2">
+          <div class="card">
+            <h2>Total Count per Parameter (EC)</h2>
+            <div class="note">Counts summed across the filtered data.</div>
+            <div class="tableWrap" style="margin-top:10px">
+              <table id="tblParamTotals">
+                <thead><tr><th>Parameter (EC Column)</th><th>Total Count</th></tr></thead>
+                <tbody></tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="card">
+            <h2>Error Share (Not Wide) • Top EC Drivers</h2>
+            <div class="note">
+              If multiple weeks/months are selected, it automatically shows <b>two tables</b> (Earliest vs Latest) for comparison.
+            </div>
+
+            <div class="grid-2" style="margin-top:10px">
+              <div>
+                <div class="pill" id="errShareLabelA">—</div>
+                <div class="smallTableWrap" style="margin-top:8px">
+                  <table id="tblErrShareA">
+                    <thead><tr><th>EC Column</th><th>Count</th><th>Share</th></tr></thead>
+                    <tbody></tbody>
+                    <tfoot></tfoot>
+                  </table>
+                </div>
+              </div>
+              <div id="errShareColB">
+                <div class="pill" id="errShareLabelB">—</div>
+                <div class="smallTableWrap" style="margin-top:8px">
+                  <table id="tblErrShareB">
+                    <thead><tr><th>EC Column</th><th>Count</th><th>Share</th></tr></thead>
+                    <tbody></tbody>
+                    <tfoot></tfoot>
+                  </table>
+                </div>
+              </div>
+            </div>
+
+            <div class="note" style="margin-top:10px">
+              Notes:
+              <ul style="margin:6px 0 0 18px;padding:0">
+                <li>Shows <b>Top 12</b> EC columns by count (per period).</li>
+                <li>“Share” = EC count ÷ total errors (per period).</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel" id="panel-charts">
+        <div class="card">
+          <h2>Charts (Line Graph • Auto-adjusts to Filters)</h2>
+          <div class="note">
+            Hover on the points to see values.
+            <br/>
+            This chart automatically uses <b>Weekly</b> if multiple WEDs are selected, otherwise <b>Monthly</b>.
+          </div>
+
+          <div class="chartRow" style="margin-top:10px">
+            <label style="margin:0">
+              Metric
+              <select id="chartMetric" class="select">
+                <option value="qa">Average QA</option>
+                <option value="errors">Total Errors</option>
+                <option value="pass">Passing Rate (%)</option>
+              </select>
+            </label>
+
+            <label style="margin:0">
+              Granularity
+              <select id="chartGran" class="select">
+                <option value="auto">Auto (Weekly if multi-week)</option>
+                <option value="weekly">Weekly (Year • Month • WED)</option>
+                <option value="monthly">Monthly (Year • Month)</option>
+              </select>
+            </label>
+
+            <span class="pill" id="chartScopePill">—</span>
+          </div>
+
+          <div class="canvasWrap" style="margin-top:10px">
+            <canvas id="trendCanvas" width="1200" height="420"></canvas>
+            <div id="chartTooltip" class="tooltip">
+              <div class="tTitle" id="ttTitle">—</div>
+              <div class="tRow" id="ttRow1">—</div>
+              <div class="tRow" id="ttRow2">—</div>
+            </div>
+          </div>
+
+          <div class="note" style="margin-top:10px">
+            Tip: If you want a separate chart per Account/Team later, we can add a dropdown like “Series by: Account/Team”.
+          </div>
+        </div>
+      </section>
+
+      <!-- NEW TAB -->
+      <section class="panel" id="panel-opps">
+        <div class="card">
+          <h2>Opps Tracker (Errors Deep Dive)</h2>
+          <div class="note">
+            This tab reads your Opps Tracker CSV headers:
+            <span class="mono">Account, Name, Contact ID, Call Date, Score, Call Disposition, Policy Type, Parameter, Sub-Parameter, Comment, WED, WWED, Month, Batch, TL, points lost, ROLE</span>.
+            <br/>
+            It automatically follows the current filters:
+            <b>Account</b> → Opps Account, <b>Batch</b> → Opps Batch, <b>Team</b> → Opps TL, and your <b>Date selections</b>.
+          </div>
+        </div>
+
+        <div class="grid-3" style="margin-top:12px">
+          <div class="card">
+            <h2>Opps KPIs (Filtered)</h2>
+            <div class="kpis" style="grid-template-columns:1fr;gap:10px">
+              <div class="kpi">
+                <div class="label">Opps Rows</div>
+                <div class="value" id="kOppsRows">—</div>
+                <div class="subv" id="kOppsScope">—</div>
+              </div>
+              <div class="kpi">
+                <div class="label">Total Points Lost</div>
+                <div class="value" id="kOppsPts">—</div>
+                <div class="subv">Sum of “points lost” under current filters.</div>
+              </div>
+              <div class="kpi">
+                <div class="label">Avg Points Lost / Opp</div>
+                <div class="value" id="kOppsAvg">—</div>
+                <div class="subv">Helps show severity (not just volume).</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <h2>Parameter Summary</h2>
+            <div class="note">Top drivers by <b>Points Lost</b> (with Count + Share).</div>
+            <div class="tableWrap" style="margin-top:10px">
+              <table id="tblOppsParam">
+                <thead><tr><th>Parameter</th><th>Opps Count</th><th>Points Lost</th><th>Share</th></tr></thead>
+                <tbody></tbody>
+                <tfoot></tfoot>
+              </table>
+            </div>
+          </div>
+
+          <div class="card">
+            <h2>Sub-Parameter Summary</h2>
+            <div class="note">
+              Filter sub-parameters by Parameter (optional):
+              <br/>
+              <select id="oppsParamPick" class="select" style="margin-top:8px;min-width:100%">
+                <option value="__ALL__">All Parameters</option>
+              </select>
+            </div>
+            <div class="tableWrap" style="margin-top:10px">
+              <table id="tblOppsSubParam">
+                <thead><tr><th>Sub-Parameter</th><th>Parameter</th><th>Opps Count</th><th>Points Lost</th></tr></thead>
+                <tbody></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <div class="grid-2" style="margin-top:12px">
+          <div class="card">
+            <h2>Who is impacted (Top)</h2>
+            <div class="note">By CSR Name (Opps Count + Points Lost).</div>
+            <div class="tableWrap" style="margin-top:10px">
+              <table id="tblOppsName">
+                <thead><tr><th>Name</th><th>Opps Count</th><th>Points Lost</th></tr></thead>
+                <tbody></tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="card">
+            <h2>Manager View (TL)</h2>
+            <div class="note">By TL (Opps Count + Points Lost). Team filter connects to TL.</div>
+            <div class="tableWrap" style="margin-top:10px">
+              <table id="tblOppsTL">
+                <thead><tr><th>TL</th><th>Opps Count</th><th>Points Lost</th></tr></thead>
+                <tbody></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <div class="card" style="margin-top:12px">
+          <h2>Opps Notes (First 200 filtered)</h2>
+          <div class="note">Use this to copy/paste coaching examples quickly.</div>
+          <div class="tableWrap" style="margin-top:10px;max-height:520px">
+            <table id="tblOppsNotes">
+              <thead>
+                <tr>
+                  <th>Account</th><th>Batch</th><th>TL</th><th>Name</th><th>WWED</th><th>Month</th>
+                  <th>Parameter</th><th>Sub-Parameter</th><th>Points Lost</th><th>Comment</th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </div>
+
+      </section>
+
+      <section class="panel" id="panel-details">
+        <div class="card">
+          <h2>Audit Details (First 500 rows)</h2>
+          <div class="note">Spot-check view.</div>
+          <div class="tableWrap" style="margin-top:10px">
+            <table id="tblNames">
+              <thead>
+                <tr>
+                  <th>CSR Name</th><th>Auditor</th><th>Account</th><th>Batch</th><th>Team</th><th>Phase</th>
+                  <th>Year</th><th>Month</th><th>WED</th><th>Call #</th><th>Total Points</th><th>Total Errors</th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+    </div>
+  </div>
+</div>
+
+<script>
+/* =========================
+   CONFIG
+========================= */
+const STORAGE_KEY = "QA_DASHBOARD_OFFLINE_DATA_CLEAN_V5_AND_DATE";
+const TARGET_DEFAULT = 90;
+const TOP_EC_SHOW = 12;
+
+const OPPS_STORAGE_KEY = "QA_DASHBOARD_OFFLINE_OPPS_V1";
+
+/* =========================
+   STATE
+========================= */
+const COL = {
+  auditor: "Auditor Name",
+  csr: "CSR Name",
+  account: "Account",
+  batch: "Batch",
+  team: "Team",
+  phase: "Phase",
+  year: "Year",
+  month: "MONTH",
+  wed: "WED",
+  score: "Total Points",
+  callNum: "Call Number",
+};
+
+const CSR_PARAM_MAP = [
+  { label: "Greeting", col: "Greeting Score" },
+  { label: "Authentication", col: "Auth Score" },
+  { label: "Professionalism", col: "Prof Score" },
+  { label: "Attentiveness", col: "Attn Score" },
+  { label: "USE TIME / HOLD", col: "Uses Time Score" },
+  { label: "PRODUCT KNOWLEDGE", col: "Prod Know Score" },
+  { label: "SYSTEM KNOWLEDGE", col: "Sys Know Score" },
+  { label: "DOCUMENTATION", col: "Docum Score" },
+  { label: "Call Resolution", col: "Proc Know Call Res Score" },
+  { label: "Creating Work", col: "Proc Know Create Work Score" },
+  { label: "Transfer / End", col: "Transfer End Score" },
+];
+
+const FILTERS = [
+  { key:'account', label:'Account', col:COL.account },
+  { key:'team',    label:'Team',    col:COL.team },
+  { key:'phase',   label:'Phase',   col:COL.phase },
+  { key:'auditor', label:'Auditor', col:COL.auditor },
+  { key:'batch',   label:'Batch',   col:COL.batch },
+];
+
+const state = {
+  raw:[], filtered:[], columns:[], ecCols:[],
+  filters:{},
+  date: { yearsSelected:new Set(), monthsSelected:new Set(), wedsSelected:new Set() },
+};
+
+// Opps tracker state
+const opps = {
+  raw: [],
+  columns: [],
+  filtered: [],
+  // headers (preferred)
+  COL: {
+    account: "Account",
+    name: "Name",
+    param: "Parameter",
+    subparam: "Sub-Parameter",
+    comment: "Comment",
+    month: "Month",
+    wed: "WWED",      // use WWED to match WE****
+    wedDate: "WED",   // date format (optional)
+    batch: "Batch",
+    tl: "TL",
+    pts: "points lost",
+    role: "ROLE",
+    callDate: "Call Date",
+  }
+};
+
+/* =========================
+   ELEMENTS
+========================= */
+const els = {
+  fileInput: document.getElementById('fileInput'),
+  oppsInput: document.getElementById('oppsInput'),
+  status: document.getElementById('status'),
+  saveBadge: document.getElementById('saveBadge'),
+  oppsBadge: document.getElementById('oppsBadge'),
+
+  btnReset: document.getElementById('btnReset'),
+  btnClear: document.getElementById('btnClear'),
+  btnSelectAllFilters: document.getElementById('btnSelectAllFilters'),
+  btnClearAllFilters: document.getElementById('btnClearAllFilters'),
+  btnExpandAll: document.getElementById('btnExpandAll'),
+  btnCollapseAll: document.getElementById('btnCollapseAll'),
+
+  btnExportJSON: document.getElementById('btnExportJSON'),
+  btnImportJSON: document.getElementById('btnImportJSON'),
+  importJSONInput: document.getElementById('importJSONInput'),
+
+  filtersCol: document.getElementById('filtersCol'),
+
+  kAvgScore: document.getElementById('kAvgScore'),
+  kAudits: document.getElementById('kAudits'),
+  kScope: document.getElementById('kScope'),
+  kDateScope: document.getElementById('kDateScope'),
+
+  btnAnalyze: document.getElementById('btnAnalyze'),
+  btnCopyAnalysis: document.getElementById('btnCopyAnalysis'),
+  analysisBox: document.getElementById('analysisBox'),
+  analysisScopePill: document.getElementById('analysisScopePill'),
+
+  trendYMW: document.querySelector('#tblTrendYMW tbody'),
+  phaseW: document.querySelector('#tblPhaseW tbody'),
+  accW: document.querySelector('#tblAccountW tbody'),
+  teamW: document.querySelector('#tblTeamW tbody'),
+  batchW: document.querySelector('#tblBatchW tbody'),
+
+  monthlyBody: document.querySelector('#tblMonthly tbody'),
+  accM: document.querySelector('#tblAccountM tbody'),
+  teamM: document.querySelector('#tblTeamM tbody'),
+  batchM: document.querySelector('#tblBatchM tbody'),
+
+  csrParamBody: document.querySelector('#tblCSRParam tbody'),
+  csrParamFoot: document.querySelector('#tblCSRParam tfoot'),
+
+  l4CallsBody: document.querySelector('#tblL4Calls tbody'),
+
+  paramTotalsBody: document.querySelector('#tblParamTotals tbody'),
+
+  // Error share
+  errShareLabelA: document.getElementById('errShareLabelA'),
+  errShareLabelB: document.getElementById('errShareLabelB'),
+  errShareColB: document.getElementById('errShareColB'),
+  errShareATbody: document.querySelector('#tblErrShareA tbody'),
+  errShareBTbody: document.querySelector('#tblErrShareB tbody'),
+  errShareATfoot: document.querySelector('#tblErrShareA tfoot'),
+  errShareBTfoot: document.querySelector('#tblErrShareB tfoot'),
+
+  // Charts
+  chartMetric: document.getElementById('chartMetric'),
+  chartGran: document.getElementById('chartGran'),
+  chartScopePill: document.getElementById('chartScopePill'),
+  trendCanvas: document.getElementById('trendCanvas'),
+  chartTooltip: document.getElementById('chartTooltip'),
+  ttTitle: document.getElementById('ttTitle'),
+  ttRow1: document.getElementById('ttRow1'),
+  ttRow2: document.getElementById('ttRow2'),
+
+  namesBody: document.querySelector('#tblNames tbody'),
+
+  // Opps
+  kOppsRows: document.getElementById('kOppsRows'),
+  kOppsPts: document.getElementById('kOppsPts'),
+  kOppsAvg: document.getElementById('kOppsAvg'),
+  kOppsScope: document.getElementById('kOppsScope'),
+  oppsParamBody: document.querySelector('#tblOppsParam tbody'),
+  oppsParamFoot: document.querySelector('#tblOppsParam tfoot'),
+  oppsSubBody: document.querySelector('#tblOppsSubParam tbody'),
+  oppsParamPick: document.getElementById('oppsParamPick'),
+  oppsNameBody: document.querySelector('#tblOppsName tbody'),
+  oppsTLBody: document.querySelector('#tblOppsTL tbody'),
+  oppsNotesBody: document.querySelector('#tblOppsNotes tbody'),
+};
+
+/* =========================
+   AUTO APPLY (debounced)
+========================= */
+let _applyTimer=null;
+function applyFiltersDebounced(){
+  clearTimeout(_applyTimer);
+  _applyTimer=setTimeout(()=>applyFilters(), 80);
+}
+
+/* =========================
+   UTILITIES
+========================= */
+function toStr(v){ return (v===null||v===undefined) ? '' : String(v).trim(); }
+function asNumber(v){
+  const s = String(v ?? '').replace(/,/g,'').trim();
+  if(s === '') return 0;
+  const n = Number(s);
+  return Number.isFinite(n) ? n : 0;
+}
+function uniq(arr){ return Array.from(new Set(arr.filter(x => x!=='' && x!=null))); }
+function escapeHtml(str){
+  return String(str)
+    .replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;')
+    .replaceAll('"','&quot;').replaceAll("'","&#039;");
+}
+function setStatus(msg){ els.status.textContent = msg; }
+function avg(nums){
+  const arr=nums.filter(n=>Number.isFinite(n));
+  if(!arr.length) return 0;
+  return arr.reduce((a,b)=>a+b,0)/arr.length;
+}
+function sum(nums){ return nums.filter(n=>Number.isFinite(n)).reduce((a,b)=>a+b,0); }
+function groupBy(rows, keyFn){
+  const m=new Map();
+  rows.forEach(r=>{
+    const k=keyFn(r);
+    if(!m.has(k)) m.set(k,[]);
+    m.get(k).push(r);
+  });
+  return m;
+}
+function detectECColumns(cols){ return cols.filter(c => /(\sEC)$/i.test(c)); }
+function totalErrors(r){ return sum(state.ecCols.map(c => asNumber(r[c]))); }
+
+function normHeader(s){ return String(s ?? '').trim().replace(/\s+/g,' ').toLowerCase(); }
+function resolveCol(preferredName){
+  const want = normHeader(preferredName);
+  return state.columns.find(c => normHeader(c) === want) || null;
+}
+function scoreOf(r){
+  const col = resolveCol(COL.score) || COL.score;
+  return asNumber(r[col]);
+}
+function isTrueVal(v){
+  const s = toStr(v).toLowerCase();
+  return s === 'true' || s === '1' || s === 'yes';
+}
+function fmt2(v){ return Number.isFinite(v) ? v.toFixed(2) : ''; }
+
+function monthIndexFromText(monthText){
+  const s = String(monthText ?? '').trim();
+  const n = Number(s);
+  if(Number.isFinite(n) && n>=1 && n<=12) return n;
+
+  const m = s.toLowerCase();
+  const map = {
+    jan:1, january:1, feb:2, february:2, mar:3, march:3, apr:4, april:4, may:5,
+    jun:6, june:6, jul:7, july:7, aug:8, august:8, sep:9, sept:9, september:9,
+    oct:10, october:10, nov:11, november:11, dec:12, december:12
+  };
+  const token = m.split(/[^a-z]/).filter(Boolean)[0] || "";
+  return map[token] || 99;
+}
+function wedIndex(wedText){
+  const s = String(wedText ?? '').trim().toUpperCase().replace(/^WE/,'');
+  const n = Number(s.replace(/\D/g,''));
+  return Number.isFinite(n) ? n : 999999;
+}
+function trendSymbol(curr, prev, higherIsBetter=true){
+  if(prev === null || prev === undefined || !Number.isFinite(prev)) return {sym:"", cls:""};
+  if(!Number.isFinite(curr)) return {sym:"", cls:""};
+  if(curr === prev) return {sym:"→", cls:"symFlat"};
+  if(higherIsBetter){
+    return curr > prev ? {sym:"▲", cls:"symUp"} : {sym:"▼", cls:"symDown"};
+  } else {
+    return curr < prev ? {sym:"▲", cls:"symUp"} : {sym:"▼", cls:"symDown"};
+  }
+}
+
+/* =========================
+   PARSING
+========================= */
+function countDelim(line, delim){ return (line.match(new RegExp(delim === "\t" ? "\\t" : "\\"+delim, "g")) || []).length; }
+function guessDelimiterFromLine(line){
+  const counts = {
+    ",": countDelim(line, ","),
+    "\t": countDelim(line, "\t"),
+    ";": countDelim(line, ";"),
+    "|": countDelim(line, "|"),
+  };
+  let best=",", bestCount=counts[","];
+  for(const d of Object.keys(counts)){
+    if(counts[d] > bestCount){ best=d; bestCount=counts[d]; }
+  }
+  return bestCount === 0 ? "," : best;
+}
+function parseDelimited(text, delim){
+  const rows = [];
+  let i=0, field='', row=[], inQuotes=false;
+  const pushField=()=>{ row.push(field); field=''; };
+  const pushRow=()=>{ rows.push(row); row=[]; };
+  while(i<text.length){
+    const ch=text[i];
+    if(inQuotes){
+      if(ch === '"'){
+        if(text[i+1] === '"'){ field+='"'; i++; }
+        else inQuotes=false;
+      } else field+=ch;
+    } else {
+      if(ch === '"') inQuotes=true;
+      else if(ch === delim){ pushField(); }
+      else if(ch === '\n'){ pushField(); pushRow(); }
+      else if(ch === '\r'){ }
+      else field+=ch;
+    }
+    i++;
+  }
+  if(field.length || row.length){ pushField(); pushRow(); }
+  return rows;
+}
+function buildObjectsFromText(text){
+  const lines = text.split(/\r?\n/);
+  const headerLine = (lines.find(l => l.trim().length>0) || "");
+  let dataLine = "";
+  let seenHeader=false;
+  for(const l of lines){
+    if(!seenHeader){
+      if(l === headerLine) seenHeader=true;
+      continue;
+    }
+    if(l.trim().length>0){ dataLine=l; break; }
+  }
+  const headerDelim = guessDelimiterFromLine(headerLine);
+  const dataDelim = dataLine ? guessDelimiterFromLine(dataLine) : headerDelim;
+  const headerCells = parseDelimited(headerLine + "\n", headerDelim)[0].map(h=>String(h??'').trim());
+  const startIdx = text.indexOf(headerLine);
+  const restText = startIdx >= 0 ? text.slice(startIdx + headerLine.length) : text;
+  const dataGrid = parseDelimited(restText, dataDelim);
+  const grid = dataGrid.filter(r => !(r.length===1 && String(r[0]||'').trim()===''));
+  const out=[];
+  for(const row of grid){
+    if(!row || row.every(v => String(v||'').trim()==='')) continue;
+    const obj = {};
+    headerCells.forEach((h, idx)=>{ obj[h] = String(row[idx] ?? '').trim(); });
+    out.push(obj);
+  }
+  return { headers: headerCells, out, headerDelim, dataDelim };
+}
+
+/* =========================
+   DATE KEYS
+========================= */
+function getDateCols(){
+  return {
+    yearCol: resolveCol(COL.year) || COL.year,
+    monthCol: resolveCol(COL.month) || COL.month,
+    wedCol: resolveCol(COL.wed) || COL.wed,
+  };
+}
+function yKey(y){ return String(y); }
+function ymKey(y,m){ return `${y}||${m}`; }
+function ymwKey(y,m,w){ return `${y}||${m}||${w}`; }
+function splitYM(key){ const [y,m]=key.split('||'); return {y,m}; }
+function splitYMW(key){ const [y,m,w]=key.split('||'); return {y,m,w}; }
+
+/* =========================
+   BASE rows (non-date filters)
+========================= */
+function baseRowsNonDate(){
+  return state.raw.filter(r=>{
+    return FILTERS.every(f=>{
+      const set = state.filters[f.key];
+      if(!set || set.size===0) return false;
+      const realCol = resolveCol(f.col) || f.col;
+      return set.has(toStr(r[realCol]));
+    });
+  });
+}
+
+/* =========================
+   FILTER UI (non-date)
+========================= */
+function createFilterBox({key,label,col}, values){
+  state.filters[key] = new Set(values);
+
+  const box = document.createElement('div');
+  box.className='filterBox';
+  box.dataset.key=key;
+
+  const head = document.createElement('div');
+  head.className='filterHead';
+  head.innerHTML = `
+    <div class="filterTitle"><b>${escapeHtml(label)}</b></div>
+    <div class="filterBadge" id="badge-${key}">${values.length}</div>
+  `;
+
+  const body = document.createElement('div');
+  body.className='filterBody open';
+  body.innerHTML = `
+    <div class="filterActionsInner">
+      <button class="miniBtn" data-action="all">All</button>
+      <button class="miniBtn" data-action="none">None</button>
+      <button class="miniBtn" data-action="selectVisible">Select Search</button>
+      <button class="miniBtn" data-action="deselectVisible">Deselect Search</button>
+    </div>
+    <input class="filterSearch" placeholder="Search ${escapeHtml(label)}…" />
+    <div class="checkList"></div>
+  `;
+
+  const list = body.querySelector('.checkList');
+  values.forEach(v=>{
+    const item = document.createElement('label');
+    item.className='checkItem';
+    item.innerHTML = `<input type="checkbox" data-value="${escapeHtml(v)}" checked /><span>${escapeHtml(v)}</span>`;
+    list.appendChild(item);
+  });
+
+  head.addEventListener('click', ()=> body.classList.toggle('open'));
+
+  const search = body.querySelector('.filterSearch');
+  search.addEventListener('input', ()=>{
+    const q = search.value.trim().toLowerCase();
+    list.querySelectorAll('.checkItem').forEach(item=>{
+      item.style.display = item.innerText.toLowerCase().includes(q) ? '' : 'none';
+    });
+  });
+
+  body.querySelector('.filterActionsInner').addEventListener('click', (e)=>{
+    const btn = e.target.closest('button'); if(!btn) return;
+    const action = btn.dataset.action;
+
+    const allChecks = Array.from(list.querySelectorAll('input[type="checkbox"]'));
+    const visibleChecks = allChecks.filter(ch=>{
+      const row = ch.closest('.checkItem');
+      return row && row.style.display !== 'none';
+    });
+
+    if(action==='all') allChecks.forEach(ch => ch.checked = true);
+    if(action==='none') allChecks.forEach(ch => ch.checked = false);
+    if(action==='selectVisible') visibleChecks.forEach(ch => ch.checked = true);
+    if(action==='deselectVisible') visibleChecks.forEach(ch => ch.checked = false);
+
+    syncFilterSetFromUI(key);
+    updateBadge(key);
+
+    refreshDateOptions();
+    applyFiltersDebounced();
+  });
+
+  list.addEventListener('change', ()=>{
+    syncFilterSetFromUI(key);
+    updateBadge(key);
+
+    refreshDateOptions();
+    applyFiltersDebounced();
+  });
+
+  box.appendChild(head);
+  box.appendChild(body);
+  return box;
+}
+
+function syncFilterSetFromUI(key){
+  const box = els.filtersCol.querySelector(`.filterBox[data-key="${key}"]`);
+  if(!box) return;
+  const checks = box.querySelectorAll('.checkList input[type="checkbox"]');
+  const selected = new Set();
+  checks.forEach(ch=>{ if(ch.checked) selected.add(ch.getAttribute('data-value')); });
+  state.filters[key]=selected;
+}
+function updateBadge(key){
+  const b = document.getElementById(`badge-${key}`);
+  if(b) b.textContent = state.filters[key]?.size ?? 0;
+}
+function setAllNonDateFilters(checked){
+  FILTERS.forEach(f=>{
+    const box = els.filtersCol.querySelector(`.filterBox[data-key="${f.key}"]`);
+    if(!box) return;
+    box.querySelectorAll('input[type="checkbox"]').forEach(ch => ch.checked = checked);
+    syncFilterSetFromUI(f.key);
+    updateBadge(f.key);
+  });
+}
+function expandCollapseAll(open){
+  els.filtersCol.querySelectorAll('.filterBody').forEach(b=>{
+    if(open) b.classList.add('open');
+    else b.classList.remove('open');
+  });
+}
+
+/* =========================
+   DATE UI (independent multi-select, no cascade)
+========================= */
+function buildDateDrilldownBox(){
+  const box = document.createElement('div');
+  box.className='filterBox';
+  box.dataset.key='date';
+
+  const head = document.createElement('div');
+  head.className='filterHead';
+  head.innerHTML = `
+    <div class="filterTitle"><b>Date</b> <span class="mono">Independent multi-select (AND mode)</span></div>
+    <div class="filterBadge" id="badge-date">—</div>
+  `;
+
+  const body = document.createElement('div');
+  body.className='filterBody open';
+  body.innerHTML = `
+    <div class="filterActionsInner">
+      <button class="miniBtn" data-action="all">All</button>
+      <button class="miniBtn" data-action="none">None</button>
+    </div>
+
+    <div class="note" style="margin-bottom:8px">
+      AND mode: if you select Year and Month and WED, rows must match <b>all</b>.
+      (Unselected levels are ignored.)
+    </div>
+
+    <div class="dateCols">
+      <div>
+        <div class="dateColTitle"><b>Year</b></div>
+        <input class="filterSearch" data-ds="year" placeholder="Search year…"/>
+        <div class="checkList" data-list="year"></div>
+      </div>
+
+      <div>
+        <div class="dateColTitle"><b>Month</b></div>
+        <input class="filterSearch" data-ds="month" placeholder="Search month…"/>
+        <div class="checkList" data-list="month"></div>
+      </div>
+
+      <div>
+        <div class="dateColTitle"><b>WED</b></div>
+        <input class="filterSearch" data-ds="wed" placeholder="Search WED…"/>
+        <div class="checkList" data-list="wed"></div>
+      </div>
+    </div>
+  `;
+
+  head.addEventListener('click', ()=> body.classList.toggle('open'));
+
+  body.querySelectorAll('.filterSearch').forEach(inp=>{
+    inp.addEventListener('input', ()=>{
+      const ds = inp.dataset.ds;
+      const q = inp.value.trim().toLowerCase();
+      const list = body.querySelector(`.checkList[data-list="${ds}"]`);
+      list.querySelectorAll('.checkItem').forEach(item=>{
+        item.style.display = item.innerText.toLowerCase().includes(q) ? '' : 'none';
+      });
+    });
+  });
+
+  body.querySelector('.filterActionsInner').addEventListener('click', (e)=>{
+    const btn = e.target.closest('button'); if(!btn) return;
+    const action = btn.dataset.action;
+
+    const setAll = (ds, checked)=>{
+      const list = body.querySelector(`.checkList[data-list="${ds}"]`);
+      list.querySelectorAll('input[type="checkbox"]').forEach(ch=> ch.checked = checked);
+    };
+    if(action==='all'){ setAll("year",true); setAll("month",true); setAll("wed",true); }
+    if(action==='none'){ setAll("year",false); setAll("month",false); setAll("wed",false); }
+
+    syncDateSetsFromUI(body);
+    updateDateBadge();
+    applyFiltersDebounced();
+  });
+
+  body.addEventListener('change', (e)=>{
+    const cb = e.target;
+    if(!cb.matches('input[type="checkbox"]')) return;
+    syncDateSetsFromUI(body);
+    updateDateBadge();
+    applyFiltersDebounced();
+  });
+
+  box.appendChild(head);
+  box.appendChild(body);
+  return box;
+}
+
+function renderDateList(ds, items, selectedSet, container){
+  container.innerHTML = '';
+  items.forEach(it=>{
+    const {key,label} = it;
+    const checked = selectedSet.has(key);
+    const item = document.createElement('label');
+    item.className='checkItem';
+    item.innerHTML = `<input type="checkbox" data-ds="${ds}" data-key="${escapeHtml(key)}" ${checked?'checked':''} /><span>${escapeHtml(label)}</span>`;
+    container.appendChild(item);
+  });
+}
+
+function syncDateSetsFromUI(body){
+  const years = new Set();
+  const months = new Set();
+  const weds = new Set();
+
+  body.querySelectorAll('input[type="checkbox"][data-ds="year"]').forEach(ch=>{ if(ch.checked) years.add(ch.getAttribute('data-key')); });
+  body.querySelectorAll('input[type="checkbox"][data-ds="month"]').forEach(ch=>{ if(ch.checked) months.add(ch.getAttribute('data-key')); });
+  body.querySelectorAll('input[type="checkbox"][data-ds="wed"]').forEach(ch=>{ if(ch.checked) weds.add(ch.getAttribute('data-key')); });
+
+  state.date.yearsSelected = years;
+  state.date.monthsSelected = months;
+  state.date.wedsSelected = weds;
+}
+
+function computeAvailableDateItems(){
+  const base = baseRowsNonDate();
+  const { yearCol, monthCol, wedCol } = getDateCols();
+
+  const yearsAll = uniq(base.map(r=>toStr(r[yearCol]))).sort((a,b)=>a.localeCompare(b));
+
+  const ymMap = new Map();
+  base.forEach(r=>{
+    const y = toStr(r[yearCol]);
+    const m = toStr(r[monthCol]);
+    if(!y || !m) return;
+    ymMap.set(ymKey(y,m), {y,m});
+  });
+
+  const ymwMap = new Map();
+  base.forEach(r=>{
+    const y = toStr(r[yearCol]);
+    const m = toStr(r[monthCol]);
+    const w = toStr(r[wedCol]);
+    if(!y || !m || !w) return;
+    ymwMap.set(ymwKey(y,m,w), {y,m,w});
+  });
+
+  return { yearsAll, ymMap, ymwMap };
+}
+
+function refreshDateOptions(){
+  const dateBox = els.filtersCol.querySelector(`.filterBox[data-key="date"]`);
+  if(!dateBox || !state.raw.length) return;
+
+  const { yearsAll, ymMap, ymwMap } = computeAvailableDateItems();
+
+  // Default select ALL when first created
+  if(state.date.yearsSelected.size===0 && state.date.monthsSelected.size===0 && state.date.wedsSelected.size===0){
+    yearsAll.forEach(y=> state.date.yearsSelected.add(yKey(y)));
+    for(const mk of ymMap.keys()) state.date.monthsSelected.add(mk);
+    for(const wk of ymwMap.keys()) state.date.wedsSelected.add(wk);
+  }
+
+  const yearItems = yearsAll.map(y=>({ key:yKey(y), label:String(y) }));
+
+  const monthItems = Array.from(ymMap.entries())
+    .map(([mk,v])=>({ key: mk, label: `${v.y} • ${v.m}` }))
+    .sort((a,b)=>{
+      const A = splitYM(a.key), B = splitYM(b.key);
+      return A.y.localeCompare(B.y) || (monthIndexFromText(A.m)-monthIndexFromText(B.m)) || A.m.localeCompare(B.m);
+    });
+
+  const wedItems = Array.from(ymwMap.entries())
+    .map(([wk,v])=>({ key: wk, label: `${v.y} • ${v.m} • ${v.w}` }))
+    .sort((a,b)=>{
+      const A = splitYMW(a.key), B = splitYMW(b.key);
+      return A.y.localeCompare(B.y)
+        || (monthIndexFromText(A.m)-monthIndexFromText(B.m))
+        || (wedIndex(A.w)-wedIndex(B.w))
+        || A.w.localeCompare(B.w);
+    });
+
+  // prune selections not available
+  const yearKeySet = new Set(yearItems.map(x=>x.key));
+  const monthKeySet = new Set(monthItems.map(x=>x.key));
+  const wedKeySet = new Set(wedItems.map(x=>x.key));
+  state.date.yearsSelected = new Set(Array.from(state.date.yearsSelected).filter(k=>yearKeySet.has(k)));
+  state.date.monthsSelected = new Set(Array.from(state.date.monthsSelected).filter(k=>monthKeySet.has(k)));
+  state.date.wedsSelected = new Set(Array.from(state.date.wedsSelected).filter(k=>wedKeySet.has(k)));
+
+  renderDateList("year", yearItems, state.date.yearsSelected, dateBox.querySelector('.checkList[data-list="year"]'));
+  renderDateList("month", monthItems, state.date.monthsSelected, dateBox.querySelector('.checkList[data-list="month"]'));
+  renderDateList("wed", wedItems, state.date.wedsSelected, dateBox.querySelector('.checkList[data-list="wed"]'));
+
+  updateDateBadge();
+}
+function updateDateBadge(){
+  const b = document.getElementById('badge-date');
+  if(!b) return;
+  b.textContent = `${state.date.yearsSelected.size}Y • ${state.date.monthsSelected.size}M • ${state.date.wedsSelected.size}W`;
+}
+
+/* =========================
+   TABS
+========================= */
+document.getElementById('tabs').addEventListener('click', (e)=>{
+  const btn=e.target.closest('.tab'); if(!btn) return;
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  btn.classList.add('active');
+  const tab=btn.dataset.tab;
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  document.getElementById('panel-'+tab).classList.add('active');
+
+  if(tab === 'charts') drawTrendChart();
+  if(tab === 'opps') renderOppsAll(); // ensure updated
+});
+
+/* =========================
+   BUTTONS
+========================= */
+els.btnReset.addEventListener('click', ()=>{
+  setAllNonDateFilters(true);
+
+  const { yearsAll, ymMap, ymwMap } = computeAvailableDateItems();
+  state.date.yearsSelected = new Set(yearsAll.map(y=>yKey(y)));
+  state.date.monthsSelected = new Set(Array.from(ymMap.keys()));
+  state.date.wedsSelected = new Set(Array.from(ymwMap.keys()));
+  refreshDateOptions();
+
+  applyFiltersDebounced();
+});
+
+els.btnClear.addEventListener('click', clearData);
+
+els.btnSelectAllFilters.addEventListener('click', ()=>{
+  setAllNonDateFilters(true);
+
+  const { yearsAll, ymMap, ymwMap } = computeAvailableDateItems();
+  state.date.yearsSelected = new Set(yearsAll.map(y=>yKey(y)));
+  state.date.monthsSelected = new Set(Array.from(ymMap.keys()));
+  state.date.wedsSelected = new Set(Array.from(ymwMap.keys()));
+
+  refreshDateOptions();
+  applyFiltersDebounced();
+});
+
+els.btnClearAllFilters.addEventListener('click', ()=>{
+  FILTERS.forEach(f=>{
+    const box = els.filtersCol.querySelector(`.filterBox[data-key="${f.key}"]`);
+    if(box) box.querySelectorAll('input[type="checkbox"]').forEach(ch => ch.checked = false);
+    state.filters[f.key] = new Set();
+    const b = document.getElementById(`badge-${f.key}`);
+    if(b) b.textContent = "0";
+  });
+
+  state.date.yearsSelected = new Set();
+  state.date.monthsSelected = new Set();
+  state.date.wedsSelected = new Set();
+
+  refreshDateOptions();
+  applyFiltersDebounced();
+});
+
+els.btnExpandAll.addEventListener('click', ()=>expandCollapseAll(true));
+els.btnCollapseAll.addEventListener('click', ()=>expandCollapseAll(false));
+
+els.btnExportJSON.addEventListener('click', exportDataJSON);
+els.btnImportJSON.addEventListener('click', ()=> els.importJSONInput.click());
+els.importJSONInput.addEventListener('change', importDataJSON);
+
+els.btnAnalyze.addEventListener('click', ()=>{
+  const text = generatePerformanceAnalysis();
+  els.analysisBox.value = text;
+  els.btnCopyAnalysis.disabled = !text.trim();
+});
+els.btnCopyAnalysis.addEventListener('click', ()=>{
+  const txt = els.analysisBox.value || '';
+  navigator.clipboard.writeText(txt).then(()=>{
+    els.analysisScopePill.textContent = "Copied ✓";
+    setTimeout(()=> updateAnalysisScopePill(), 900);
+  });
+});
+
+els.chartMetric.addEventListener('change', ()=> drawTrendChart());
+els.chartGran.addEventListener('change', ()=> drawTrendChart());
+
+/* =========================
+   FILE UPLOAD (QA)
+========================= */
+els.fileInput.addEventListener('change', async (e)=>{
+  const file = e.target.files?.[0];
+  if(!file) return;
+
+  const name = (file.name || "").toLowerCase();
+  if(name.endsWith(".xlsx") || name.endsWith(".xls")){
+    setStatus("❌ This dashboard can’t read .XLSX directly. In Excel: Save As → CSV UTF-8 (*.csv), then upload the CSV.");
+    return;
+  }
+
+  const mb = (file.size / (1024*1024));
+  setStatus(`Loading QA: ${file.name} (${mb.toFixed(1)} MB)…`);
+
+  try{
+    const text = await file.text();
+    if(!text || text.trim().length < 5){
+      setStatus("❌ File loaded but looks empty. Re-export from Excel as CSV UTF-8.");
+      return;
+    }
+
+    const { headers, out } = buildObjectsFromText(text);
+    if(!headers.length || !out.length){
+      setStatus("❌ Loaded but no rows detected. Re-export as CSV UTF-8 (Comma).");
+      return;
+    }
+
+    setStatus(`✅ QA Loaded ${out.length} rows • ${headers.length} columns`);
+    loadDataset(headers, out, {source:`File: ${file.name}`});
+  } catch(err){
+    console.error(err);
+    setStatus("❌ Failed to read the file. Re-export as CSV UTF-8 or try a smaller file.");
+  }
+});
+
+/* =========================
+   FILE UPLOAD (OPPS)
+========================= */
+els.oppsInput.addEventListener('change', async (e)=>{
+  const file = e.target.files?.[0];
+  if(!file) return;
+
+  const name = (file.name || "").toLowerCase();
+  if(name.endsWith(".xlsx") || name.endsWith(".xls")){
+    setStatus("❌ Opps Tracker must be CSV (not XLSX). Save As → CSV UTF-8, then upload.");
+    return;
+  }
+
+  const mb = (file.size / (1024*1024));
+  setStatus(`Loading Opps: ${file.name} (${mb.toFixed(1)} MB)…`);
+
+  try{
+    const text = await file.text();
+    const { headers, out } = buildObjectsFromText(text);
+    if(!headers.length || !out.length){
+      setStatus("❌ Opps loaded but no rows detected. Re-export as CSV UTF-8 (Comma).");
+      return;
+    }
+
+    opps.columns = headers;
+    opps.raw = out;
+
+    // save locally
+    try{
+      const payload = { saved_at:new Date().toISOString(), source:file.name, columns:headers, rows:out };
+      localStorage.setItem(OPPS_STORAGE_KEY, JSON.stringify(payload));
+      els.oppsBadge.style.display = '';
+      els.oppsBadge.className = 'pill ok';
+      els.oppsBadge.textContent = `Opps loaded • ${out.length} rows • Saved offline`;
+    } catch(err){
+      els.oppsBadge.style.display = '';
+      els.oppsBadge.className = 'pill';
+      els.oppsBadge.textContent = `Opps loaded • ${out.length} rows • (not saved - storage blocked)`;
+    }
+
+    setStatus(`✅ Opps Loaded ${out.length} rows • ${headers.length} columns`);
+    applyOppsFilters(); // connect to existing filters
+    renderOppsAll();
+  } catch(err){
+    console.error(err);
+    setStatus("❌ Failed to read Opps file. Re-export as CSV UTF-8.");
+  } finally {
+    els.oppsInput.value = '';
+  }
+});
+
+/* =========================
+   LOAD DATASET + BUILD UI
+========================= */
+function loadDataset(headers, out, meta={}){
+  state.raw = out;
+  state.columns = headers;
+  state.ecCols = detectECColumns(headers);
+
+  els.filtersCol.innerHTML = '';
+
+  // Date FIRST
+  els.filtersCol.appendChild(buildDateDrilldownBox());
+
+  // Non-date filters
+  FILTERS.forEach(f=>{
+    const realCol = resolveCol(f.col) || f.col;
+    const values = uniq(state.raw.map(r => toStr(r[realCol]))).sort((a,b)=>a.localeCompare(b));
+    els.filtersCol.appendChild(createFilterBox(f, values));
+  });
+
+  // Set date to ALL by default
+  const { yearsAll, ymMap, ymwMap } = computeAvailableDateItems();
+  state.date.yearsSelected = new Set(yearsAll.map(y=>yKey(y)));
+  state.date.monthsSelected = new Set(Array.from(ymMap.keys()));
+  state.date.wedsSelected = new Set(Array.from(ymwMap.keys()));
+  refreshDateOptions();
+
+  enableControls(true);
+
+  const src = meta.source ? ` • ${meta.source}` : '';
+  setStatus(`Ready • Rows: ${state.raw.length} • Columns: ${state.columns.length} • EC columns: ${state.ecCols.length}${src}`);
+
+  autoSaveToBrowser(meta.source || "Loaded");
+  applyFiltersDebounced();
+}
+
+/* =========================
+   APPLY FILTERS (QA) + OPPS (connected)
+========================= */
+function applyFilters(){
+  FILTERS.forEach(f => syncFilterSetFromUI(f.key));
+
+  const { yearCol, monthCol, wedCol } = getDateCols();
+
+  const hasY = state.date.yearsSelected.size > 0;
+  const hasM = state.date.monthsSelected.size > 0;
+  const hasW = state.date.wedsSelected.size > 0;
+
+  state.filtered = state.raw.filter(r=>{
+    // non-date filters (must have at least 1 selected per filter)
+    const passNonDate = FILTERS.every(f=>{
+      const set = state.filters[f.key];
+      if(!set || set.size===0) return false;
+      const realCol = resolveCol(f.col) || f.col;
+      return set.has(toStr(r[realCol]));
+    });
+    if(!passNonDate) return false;
+
+    // date filters (AND)
+    const y = toStr(r[yearCol]);
+    const m = toStr(r[monthCol]);
+    const w = toStr(r[wedCol]);
+
+    if(hasY && !state.date.yearsSelected.has(yKey(y))) return false;
+    if(hasM && !state.date.monthsSelected.has(ymKey(y,m))) return false;
+    if(hasW && !state.date.wedsSelected.has(ymwKey(y,m,w))) return false;
+
+    if(!hasY && !hasM && !hasW) return false;
+
+    return true;
+  });
+
+  updateDateBadge();
+  renderAll();
+
+  // Apply opps using same selections
+  applyOppsFilters();
+  renderOppsAll();
+}
+
+/* =========================
+   RENDER HELPERS
+========================= */
+function buildPerfRows(rows, colName){
+  const col = resolveCol(colName) || colName;
+  const m = groupBy(rows, r => toStr(r[col]) || '(Blank)');
+  return Array.from(m.entries()).map(([k, items])=>({
+    k,
+    avgScore: avg(items.map(scoreOf)),
+    audits: items.length
+  })).sort((a,b)=>b.avgScore - a.avgScore || b.audits - a.audits || a.k.localeCompare(b.k));
+}
+function fillPerfTable(tbodyEl, perfRows){
+  if(!tbodyEl) return;
+  tbodyEl.innerHTML='';
+  perfRows.forEach(r=>{
+    const tr=document.createElement('tr');
+    tr.innerHTML = `<td>${escapeHtml(r.k)}</td><td>${r.avgScore.toFixed(2)}</td><td>${r.audits}</td>`;
+    tbodyEl.appendChild(tr);
+  });
+}
+function fillYMWTrendTable(tbodyEl, rows){
+  const { yearCol, monthCol, wedCol } = getDateCols();
+  const monthNumCol = resolveCol("MonthNum");
+  const monthOrderCol = resolveCol("Month order");
+
+  const m = groupBy(rows, r => `${toStr(r[yearCol])}||${toStr(r[monthCol])}||${toStr(r[wedCol])}`);
+  const keys = Array.from(m.keys()).sort((a,b)=>{
+    const [ya,ma,wa]=a.split('||');
+    const [yb,mb,wb]=b.split('||');
+    const ycmp = ya.localeCompare(yb);
+    if(ycmp) return ycmp;
+
+    const ia = monthNumCol ? asNumber((m.get(a)[0]||{})[monthNumCol])
+            : monthOrderCol ? asNumber((m.get(a)[0]||{})[monthOrderCol])
+            : monthIndexFromText(ma);
+
+    const ib = monthNumCol ? asNumber((m.get(b)[0]||{})[monthNumCol])
+            : monthOrderCol ? asNumber((m.get(b)[0]||{})[monthOrderCol])
+            : monthIndexFromText(mb);
+
+    if(ia !== ib) return ia - ib;
+    return wedIndex(wa) - wedIndex(wb);
+  });
+
+  tbodyEl.innerHTML='';
+  let prevScore=null;
+  keys.forEach(k=>{
+    const [y,mo,w]=k.split('||');
+    const items=m.get(k);
+    const curScore=avg(items.map(scoreOf));
+    const sym=trendSymbol(curScore, prevScore, true);
+    const tr=document.createElement('tr');
+    tr.innerHTML = `
+      <td>${escapeHtml(y)}</td>
+      <td>${escapeHtml(mo)}</td>
+      <td>${escapeHtml(w)}</td>
+      <td>${curScore.toFixed(2)} ${sym.sym ? `<span class="sym ${sym.cls}">${sym.sym}</span>` : ''}</td>
+      <td>${items.length}</td>
+    `;
+    tbodyEl.appendChild(tr);
+    prevScore=curScore;
+  });
+}
+function renderMonthly(){
+  const { yearCol, monthCol } = getDateCols();
+  const monthNumCol = resolveCol("MonthNum");
+  const monthOrderCol = resolveCol("Month order");
+
+  const m = groupBy(state.filtered, r => `${toStr(r[yearCol])}||${toStr(r[monthCol])}`);
+  const keys = Array.from(m.keys()).sort((a,b)=>{
+    const [ya,ma]=a.split('||');
+    const [yb,mb]=b.split('||');
+    const ycmp = ya.localeCompare(yb);
+    if(ycmp) return ycmp;
+
+    const ia = monthNumCol ? asNumber((m.get(a)[0]||{})[monthNumCol])
+            : monthOrderCol ? asNumber((m.get(a)[0]||{})[monthOrderCol])
+            : monthIndexFromText(ma);
+
+    const ib = monthNumCol ? asNumber((m.get(b)[0]||{})[monthNumCol])
+            : monthOrderCol ? asNumber((m.get(b)[0]||{})[monthOrderCol])
+            : monthIndexFromText(mb);
+
+    return ia - ib;
+  });
+
+  els.monthlyBody.innerHTML='';
+  let prevScore=null;
+
+  keys.forEach(k=>{
+    const [y,mo]=k.split('||');
+    const items = m.get(k);
+    const curScore = avg(items.map(scoreOf));
+    const sym = trendSymbol(curScore, prevScore, true);
+    const tr=document.createElement('tr');
+    tr.innerHTML = `
+      <td>${escapeHtml(y)}</td>
+      <td>${escapeHtml(mo)}</td>
+      <td>${curScore.toFixed(2)} ${sym.sym ? `<span class="sym ${sym.cls}">${sym.sym}</span>` : ''}</td>
+      <td>${items.length}</td>
+    `;
+    els.monthlyBody.appendChild(tr);
+    prevScore=curScore;
+  });
+}
+
+/* =========================
+   CSR SUMMARY (0 included)
+========================= */
+function renderCSRParameterAverages(){
+  const rows = state.filtered;
+  const csrCol = resolveCol(COL.csr) || COL.csr;
+  const csrMap = groupBy(rows, r => toStr(r[csrCol]) || '(Blank)');
+  const authQCols = state.columns.filter(c => /^Auth_Q\d+/i.test(c));
+
+  const avgColAllAudits = (items, preferredColName) => {
+    const realCol = resolveCol(preferredColName);
+    const audits = items.length || 1;
+    if(!realCol) return 0;
+    const total = items.reduce((acc,r)=> acc + asNumber(r[realCol]), 0);
+    return total / audits;
+  };
+
+  const out = [];
+  for(const [csr, items] of csrMap.entries()){
+    const audits = items.length;
+    const avgQA = audits ? (items.reduce((acc,r)=>acc + scoreOf(r),0) / audits) : 0;
+
+    const passCount = items.filter(r => scoreOf(r) >= TARGET_DEFAULT).length;
+    const passingRate = audits ? (passCount / audits) : 0;
+
+    let authFail = 0;
+    if(authQCols.length){
+      items.forEach(r=>{
+        const anyTrue = authQCols.some(c => isTrueVal(r[c]));
+        if(anyTrue) authFail += 1;
+      });
+    }
+
+    const params = CSR_PARAM_MAP.map(p => avgColAllAudits(items, p.col));
+    out.push({ csr, audits, avgQA, target: TARGET_DEFAULT, passingRate, authFail, params });
+  }
+
+  out.sort((a,b)=> (b.avgQA - a.avgQA) || (b.audits - a.audits) || a.csr.localeCompare(b.csr));
+
+  els.csrParamBody.innerHTML='';
+  out.forEach(r=>{
+    const tr=document.createElement('tr');
+    tr.innerHTML = `
+      <td>${escapeHtml(r.csr)}</td>
+      <td>${r.audits}</td>
+      <td>${r.audits ? r.avgQA.toFixed(2) : ''}</td>
+      <td>${r.target.toFixed(1)}</td>
+      <td>${r.audits ? (r.passingRate*100).toFixed(2)+'%' : ''}</td>
+      <td>${r.authFail}</td>
+      ${r.params.map(v => `<td>${fmt2(v)}</td>`).join('')}
+    `;
+    els.csrParamBody.appendChild(tr);
+  });
+
+  const totalAudits = sum(out.map(x=>x.audits));
+  const weightedAvgQA = totalAudits ? (out.reduce((acc,r)=>acc + r.avgQA*r.audits,0)/totalAudits) : 0;
+  const totalPass = out.reduce((acc,r)=> acc + Math.round(r.passingRate*r.audits), 0);
+  const passRateAll = totalAudits ? (totalPass/totalAudits) : 0;
+  const totalAuthFail = sum(out.map(r=>r.authFail));
+
+  const weightedParam = (idx) => {
+    const num = out.reduce((acc,r)=> acc + (Number.isFinite(r.params[idx]) ? r.params[idx] : 0) * r.audits, 0);
+    return totalAudits ? (num / totalAudits) : 0;
+  };
+
+  els.csrParamFoot.innerHTML = `
+    <tr>
+      <td><b>TOTAL/AVERAGE</b></td>
+      <td><b>${totalAudits}</b></td>
+      <td><b>${weightedAvgQA.toFixed(2)}</b></td>
+      <td><b>${TARGET_DEFAULT.toFixed(1)}</b></td>
+      <td><b>${(passRateAll*100).toFixed(2)}%</b></td>
+      <td><b>${totalAuthFail.toFixed(0)}</b></td>
+      ${CSR_PARAM_MAP.map((_, idx) => `<td><b>${weightedParam(idx).toFixed(2)}</b></td>`).join('')}
+    </tr>
+  `;
+}
+
+/* =========================
+   L4 CALL SET
+========================= */
+function renderL4CallSummary(){
+  const { yearCol, monthCol, wedCol } = getDateCols();
+  const batchCol = resolveCol(COL.batch) || COL.batch;
+  const callCol = resolveCol(COL.callNum) || COL.callNum;
+  const csrCol = resolveCol(COL.csr) || COL.csr;
+  const acctCol = resolveCol(COL.account) || COL.account;
+  const teamCol = resolveCol(COL.team) || COL.team;
+  const phaseCol = resolveCol(COL.phase) || COL.phase;
+
+  const rows = state.filtered.filter(r=>{
+    const batch = toStr(r[batchCol]).toUpperCase();
+    const cn = toStr(r[callCol]);
+    return batch==="L4" && (cn==="1"||cn==="2"||cn==="3");
+  });
+
+  const keyFn = (r)=>[
+    toStr(r[csrCol]),toStr(r[acctCol]),toStr(r[batchCol]),toStr(r[teamCol]),toStr(r[phaseCol]),
+    toStr(r[yearCol]),toStr(r[monthCol]),toStr(r[wedCol]),
+  ].join("||");
+
+  const g = groupBy(rows, keyFn);
+  const out=[];
+  for(const [k, items] of g.entries()){
+    const b=items[0];
+    const call1 = items.find(x => toStr(x[callCol])==="1");
+    const call2 = items.find(x => toStr(x[callCol])==="2");
+    const call3 = items.find(x => toStr(x[callCol])==="3");
+
+    const s1 = call1 ? scoreOf(call1) : null;
+    const s2 = call2 ? scoreOf(call2) : null;
+    const s3 = call3 ? scoreOf(call3) : null;
+
+    const scores=[s1,s2,s3].filter(v=>v!==null && Number.isFinite(v));
+    const avgScore = scores.length ? scores.reduce((a,b)=>a+b,0)/scores.length : NaN;
+
+    out.push({
+      csr: toStr(b[csrCol]),
+      account: toStr(b[acctCol]),
+      batch: toStr(b[batchCol]),
+      team: toStr(b[teamCol]),
+      phase: toStr(b[phaseCol]),
+      year: toStr(b[yearCol]),
+      month: toStr(b[monthCol]),
+      wed: toStr(b[wedCol]),
+      s1,s2,s3,
+      avgScore,
+      totalErr: sum(items.map(totalErrors))
+    });
+  }
+
+  out.sort((a,b)=> (b.avgScore-a.avgScore) || a.csr.localeCompare(b.csr));
+  const fmt = v => (v===null || !Number.isFinite(v)) ? "—" : Number(v).toFixed(2);
+
+  els.l4CallsBody.innerHTML='';
+  out.slice(0,500).forEach(r=>{
+    const tr=document.createElement('tr');
+    tr.innerHTML = `
+      <td>${escapeHtml(r.csr)}</td>
+      <td>${escapeHtml(r.account)}</td>
+      <td>${escapeHtml(r.batch)}</td>
+      <td>${escapeHtml(r.team)}</td>
+      <td>${escapeHtml(r.phase)}</td>
+      <td>${escapeHtml(r.year)}</td>
+      <td>${escapeHtml(r.month)}</td>
+      <td>${escapeHtml(r.wed)}</td>
+      <td>${fmt(r.s1)}</td>
+      <td>${fmt(r.s2)}</td>
+      <td>${fmt(r.s3)}</td>
+      <td><b>${Number.isFinite(r.avgScore)?r.avgScore.toFixed(2):"—"}</b></td>
+      <td><b>${r.totalErr.toFixed(0)}</b></td>
+    `;
+    els.l4CallsBody.appendChild(tr);
+  });
+}
+
+/* =========================
+   ERROR COUNTS
+========================= */
+function renderParamTotals(){
+  const totals = state.ecCols.map(c => ({
+    col: c,
+    val: sum(state.filtered.map(r => asNumber(r[c])))
+  })).sort((a,b)=>b.val-a.val);
+
+  els.paramTotalsBody.innerHTML='';
+  totals.forEach(t=>{
+    const tr=document.createElement('tr');
+    tr.innerHTML = `<td>${escapeHtml(t.col)}</td><td><b>${t.val.toFixed(0)}</b></td>`;
+    els.paramTotalsBody.appendChild(tr);
+  });
+}
+
+/* Error share (2 tables when multi weeks/months selected) */
+function buildTimeSeriesKeys(rows, mode /* 'weekly'|'monthly' */){
+  const { yearCol, monthCol, wedCol } = getDateCols();
+  const monthNumCol = resolveCol("MonthNum");
+  const monthOrderCol = resolveCol("Month order");
+
+  const getMonthSort = (sampleRow, mText)=>{
+    if(monthNumCol) return asNumber(sampleRow?.[monthNumCol]);
+    if(monthOrderCol) return asNumber(sampleRow?.[monthOrderCol]);
+    return monthIndexFromText(mText);
+  };
+
+  if(mode === 'monthly'){
+    const g = groupBy(rows, r => `${toStr(r[yearCol])}||${toStr(r[monthCol])}`);
+    const keys = Array.from(g.keys()).sort((a,b)=>{
+      const [ya,ma]=a.split("||");
+      const [yb,mb]=b.split("||");
+      const ycmp = ya.localeCompare(yb);
+      if(ycmp) return ycmp;
+      const ra = (g.get(a)||[])[0];
+      const rb = (g.get(b)||[])[0];
+      return getMonthSort(ra, ma) - getMonthSort(rb, mb) || ma.localeCompare(mb);
+    });
+    return { g, keys, labelFn: (k)=>{ const [y,m]=k.split("||"); return `${y} • ${m}`; } };
+  } else {
+    const g = groupBy(rows, r => `${toStr(r[yearCol])}||${toStr(r[monthCol])}||${toStr(r[wedCol])}`);
+    const keys = Array.from(g.keys()).sort((a,b)=>{
+      const [ya,ma,wa]=a.split("||");
+      const [yb,mb,wb]=b.split("||");
+      const ycmp = ya.localeCompare(yb);
+      if(ycmp) return ycmp;
+      const ra = (g.get(a)||[])[0];
+      const rb = (g.get(b)||[])[0];
+      const mcmp = getMonthSort(ra, ma) - getMonthSort(rb, mb);
+      if(mcmp) return mcmp;
+      return wedIndex(wa) - wedIndex(wb) || wa.localeCompare(wb);
+    });
+    return { g, keys, labelFn: (k)=>{ const [y,m,w]=k.split("||"); return `${y} • ${m} • ${w}`; } };
+  }
+}
+function computeECTotals(rows){
+  const totals = state.ecCols.map(c => ({
+    name: c,
+    val: sum(rows.map(r => asNumber(r[c])))
+  })).sort((a,b)=>b.val-a.val);
+  const totalErr = sum(totals.map(x=>x.val));
+  return { totals, totalErr };
+}
+function fillErrShareTable(tbody, tfoot, totals, totalErr){
+  tbody.innerHTML = '';
+  const top = totals.slice(0, TOP_EC_SHOW);
+  top.forEach(x=>{
+    const share = totalErr ? (x.val / totalErr) : 0;
+    const tr=document.createElement('tr');
+    tr.innerHTML = `<td>${escapeHtml(x.name)}</td><td><b>${x.val.toFixed(0)}</b></td><td>${(share*100).toFixed(2)}%</td>`;
+    tbody.appendChild(tr);
+  });
+  tfoot.innerHTML = `
+    <tr>
+      <td><b>TOTAL</b></td>
+      <td><b>${totalErr.toFixed(0)}</b></td>
+      <td><b>100%</b></td>
+    </tr>
+  `;
+}
+function renderErrorShareComparison(){
+  const granWanted = (els.chartGran?.value || 'auto');
+  let mode = 'weekly';
+  if(granWanted === 'monthly') mode = 'monthly';
+  if(granWanted === 'weekly') mode = 'weekly';
+  if(granWanted === 'auto'){
+    const hasMultiW = (state.date.wedsSelected?.size ?? 0) > 1;
+    const hasMultiM = (state.date.monthsSelected?.size ?? 0) > 1;
+    mode = (hasMultiW || !hasMultiM) ? 'weekly' : 'monthly';
+  }
+
+  const { g, keys, labelFn } = buildTimeSeriesKeys(state.filtered, mode);
+
+  if(keys.length <= 1){
+    els.errShareColB.style.display = 'none';
+    const onlyKey = keys[0] || null;
+    const rowsA = onlyKey ? (g.get(onlyKey)||[]) : [];
+    const labelA = onlyKey ? labelFn(onlyKey) : 'No period';
+    els.errShareLabelA.textContent = `Selection: ${labelA}`;
+    els.errShareLabelB.textContent = '—';
+
+    const A = computeECTotals(rowsA);
+    fillErrShareTable(els.errShareATbody, els.errShareATfoot, A.totals, A.totalErr);
+
+    els.errShareBTbody.innerHTML='';
+    els.errShareBTfoot.innerHTML='';
+    return;
+  }
+
+  els.errShareColB.style.display = '';
+  const firstKey = keys[0];
+  const lastKey = keys[keys.length-1];
+  const rowsA = g.get(firstKey) || [];
+  const rowsB = g.get(lastKey) || [];
+
+  els.errShareLabelA.textContent = `Earliest: ${labelFn(firstKey)}`;
+  els.errShareLabelB.textContent = `Latest: ${labelFn(lastKey)}`;
+
+  const A = computeECTotals(rowsA);
+  const B = computeECTotals(rowsB);
+
+  fillErrShareTable(els.errShareATbody, els.errShareATfoot, A.totals, A.totalErr);
+  fillErrShareTable(els.errShareBTbody, els.errShareBTfoot, B.totals, B.totalErr);
+}
+
+/* =========================
+   DETAILS
+========================= */
+function renderNames(){
+  const { yearCol, monthCol, wedCol } = getDateCols();
+  const csrCol = resolveCol(COL.csr) || COL.csr;
+  const audCol = resolveCol(COL.auditor) || COL.auditor;
+  const acctCol = resolveCol(COL.account) || COL.account;
+  const batchCol = resolveCol(COL.batch) || COL.batch;
+  const teamCol = resolveCol(COL.team) || COL.team;
+  const phaseCol = resolveCol(COL.phase) || COL.phase;
+  const callCol = resolveCol(COL.callNum) || COL.callNum;
+
+  els.namesBody.innerHTML='';
+  state.filtered.slice(0,500).forEach(r=>{
+    const tr=document.createElement('tr');
+    tr.innerHTML = `
+      <td>${escapeHtml(toStr(r[csrCol]))}</td>
+      <td>${escapeHtml(toStr(r[audCol]))}</td>
+      <td>${escapeHtml(toStr(r[acctCol]))}</td>
+      <td>${escapeHtml(toStr(r[batchCol]))}</td>
+      <td>${escapeHtml(toStr(r[teamCol]))}</td>
+      <td>${escapeHtml(toStr(r[phaseCol]))}</td>
+      <td>${escapeHtml(toStr(r[yearCol]))}</td>
+      <td>${escapeHtml(toStr(r[monthCol]))}</td>
+      <td>${escapeHtml(toStr(r[wedCol]))}</td>
+      <td>${escapeHtml(toStr(r[callCol]))}</td>
+      <td>${scoreOf(r).toFixed(2)}</td>
+      <td>${totalErrors(r).toFixed(0)}</td>
+    `;
+    els.namesBody.appendChild(tr);
+  });
+}
+
+/* =========================
+   ANALYSIS HELPERS
+========================= */
+function updateAnalysisScopePill(){
+  const datePart = `${state.date.yearsSelected.size}Y ${state.date.monthsSelected.size}M ${state.date.wedsSelected.size}W`;
+  const parts = [
+    `Acct:${state.filters.account?.size ?? 0}`,
+    `Team:${state.filters.team?.size ?? 0}`,
+    `Batch:${state.filters.batch?.size ?? 0}`,
+    `Phase:${state.filters.phase?.size ?? 0}`,
+    `Aud:${state.filters.auditor?.size ?? 0}`,
+  ];
+  els.analysisScopePill.textContent = `${datePart} • ${parts.join(" • ")}`;
+}
+function topN(arr, n, key="val"){
+  return arr.slice().sort((a,b)=> (b[key]-a[key]) || (a.name||"").localeCompare(b.name||"")).slice(0,n);
+}
+function bottomN(arr, n, key="val"){
+  return arr.slice().sort((a,b)=> (a[key]-b[key]) || (a.name||"").localeCompare(b.name||"")).slice(0,n);
+}
+
+/* =========================
+   PERFORMANCE ANALYSIS (adds Root Cause + Action Plan)
+========================= */
+function generatePerformanceAnalysis(){
+  const rows = state.filtered || [];
+  updateAnalysisScopePill();
+  if(!rows.length){
+    return "No rows match the current filters.\n\nTip: Select at least one value in each filter and at least one Year/Month/WED.";
+  }
+
+  const audits = rows.length;
+  const avgQA = avg(rows.map(scoreOf));
+  const passRate = (rows.filter(r => scoreOf(r) >= TARGET_DEFAULT).length / audits) * 100;
+  const totalErrAll = sum(rows.map(totalErrors));
+  const errPerAudit = audits ? (totalErrAll / audits) : 0;
+
+  const { yearCol, monthCol, wedCol } = getDateCols();
+  const teamCol  = resolveCol(COL.team) || COL.team;
+  const acctCol  = resolveCol(COL.account) || COL.account;
+  const phaseCol = resolveCol(COL.phase) || COL.phase;
+  const csrCol   = resolveCol(COL.csr) || COL.csr;
+
+  const monthNumCol = resolveCol("MonthNum");
+  const monthOrderCol = resolveCol("Month order");
+  const getMonthSort = (sampleRow, mText)=>{
+    if(monthNumCol) return asNumber(sampleRow?.[monthNumCol]);
+    if(monthOrderCol) return asNumber(sampleRow?.[monthOrderCol]);
+    return monthIndexFromText(mText);
+  };
+
+  // Weekly series
+  const gYMW = groupBy(rows, r => `${toStr(r[yearCol])}||${toStr(r[monthCol])}||${toStr(r[wedCol])}`);
+  const ymwKeys = Array.from(gYMW.keys()).sort((a,b)=>{
+    const [ya,ma,wa]=a.split("||");
+    const [yb,mb,wb]=b.split("||");
+    const ycmp = ya.localeCompare(yb);
+    if(ycmp) return ycmp;
+    const ra = (gYMW.get(a)||[])[0];
+    const rb = (gYMW.get(b)||[])[0];
+    const mcmp = getMonthSort(ra, ma) - getMonthSort(rb, mb);
+    if(mcmp) return mcmp;
+    return wedIndex(wa) - wedIndex(wb) || wa.localeCompare(wb);
+  });
+  const ymwSeries = ymwKeys.map(k=>{
+    const items = gYMW.get(k) || [];
+    const [y,m,w] = k.split("||");
+    const avgScore = avg(items.map(scoreOf));
+    const errTotal = items.length ? sum(items.map(totalErrors)) : 0;
+    const pass = items.length ? (items.filter(r=>scoreOf(r)>=TARGET_DEFAULT).length / items.length)*100 : 0;
+    return { y, m, w, k, audits: items.length, avgScore, errTotal, pass };
+  });
+
+  // Monthly series
+  const gYM = groupBy(rows, r => `${toStr(r[yearCol])}||${toStr(r[monthCol])}`);
+  const ymKeys = Array.from(gYM.keys()).sort((a,b)=>{
+    const [ya,ma]=a.split("||");
+    const [yb,mb]=b.split("||");
+    const ycmp = ya.localeCompare(yb);
+    if(ycmp) return ycmp;
+    const ra = (gYM.get(a)||[])[0];
+    const rb = (gYM.get(b)||[])[0];
+    return getMonthSort(ra, ma) - getMonthSort(rb, mb) || ma.localeCompare(mb);
+  });
+  const ymSeries = ymKeys.map(k=>{
+    const items = gYM.get(k) || [];
+    const [y,m] = k.split("||");
+    const avgScore = avg(items.map(scoreOf));
+    const errTotal = items.length ? sum(items.map(totalErrors)) : 0;
+    const pass = items.length ? (items.filter(r=>scoreOf(r)>=TARGET_DEFAULT).length / items.length)*100 : 0;
+    return { y, m, k, audits: items.length, avgScore, errTotal, pass };
+  });
+
+  const hasMultiWED = (state.date.wedsSelected?.size ?? 0) > 1;
+  const hasMultiMonth = (state.date.monthsSelected?.size ?? 0) > 1;
+  const useWeek = hasMultiWED || (!hasMultiMonth && ymwSeries.length > 1);
+
+  // Parameters (include 0)
+  const paramStats = CSR_PARAM_MAP.map(p=>{
+    const real = resolveCol(p.col);
+    const total = rows.reduce((acc,r)=> acc + (real ? asNumber(r[real]) : 0), 0);
+    return { name: p.label, val: total / (audits || 1) };
+  });
+  const bestParams = topN(paramStats, 4, "val");
+  const worstParams = bottomN(paramStats, 4, "val");
+
+  // EC drivers
+  const ecTotals = state.ecCols
+    .map(c=>({ name:c, val: sum(rows.map(r=>asNumber(r[c]))) }))
+    .filter(x=>x.val>0);
+  const topEC = topN(ecTotals, 10, "val");
+
+  // CSR performance
+  const csrMap = groupBy(rows, r=> toStr(r[csrCol]) || "(Blank)");
+  const csrList = [];
+  for(const [name, items] of csrMap.entries()){
+    const a = items.length;
+    const qa = a ? avg(items.map(scoreOf)) : 0;
+    const er = a ? sum(items.map(totalErrors)) : 0;
+    const pr = a ? (items.filter(r=>scoreOf(r)>=TARGET_DEFAULT).length / a)*100 : 0;
+    csrList.push({ name, audits:a, avgQA:qa, errors:er, pass:pr });
+  }
+  const topCSR = csrList.slice().sort((a,b)=>b.avgQA-a.avgQA).slice(0,5);
+  const lowCSR = csrList.slice().sort((a,b)=>a.avgQA-b.avgQA).slice(0,5);
+  const errCSR = csrList.slice().sort((a,b)=>b.errors-a.errors).slice(0,5);
+
+  function segmentCallouts(segmentColName, label){
+    const g = groupBy(rows, r => toStr(r[segmentColName]) || "(Blank)");
+    const list = [];
+    for(const [name, items] of g.entries()){
+      const a = items.length;
+      const qa = a ? avg(items.map(scoreOf)) : 0;
+      const er = a ? sum(items.map(totalErrors)) : 0;
+      const pr = a ? (items.filter(r=>scoreOf(r)>=TARGET_DEFAULT).length / a)*100 : 0;
+      list.push({ name, audits:a, avgQA:qa, errors:er, pass:pr });
+    }
+    const below = list.filter(x=>x.audits>0).sort((a,b)=>a.avgQA-b.avgQA).slice(0,3);
+    const mostErr = list.filter(x=>x.audits>0).sort((a,b)=>b.errors-a.errors).slice(0,3);
+    return { label, below, mostErr };
+  }
+  const callTeam  = segmentCallouts(teamCol, "TEAM");
+  const callAcct  = segmentCallouts(acctCol, "ACCOUNT");
+  const callPhase = segmentCallouts(phaseCol, "PHASE");
+
+  function compareSeries(series, labelFn){
+    if(series.length < 2) return null;
+    const first = series[0];
+    const last  = series[series.length-1];
+    return {
+      firstLabel: labelFn(first),
+      lastLabel: labelFn(last),
+      first,
+      last,
+      dScore: last.avgScore - first.avgScore,
+      dErr: last.errTotal - first.errTotal,
+      dPass: last.pass - first.pass
+    };
+  }
+  const monthCompare = compareSeries(ymSeries, x => `${x.y} • ${x.m}`);
+  const weekCompare  = compareSeries(ymwSeries, x => `${x.y} • ${x.m} • ${x.w}`);
+
+  const lastW = ymwSeries.length ? ymwSeries[ymwSeries.length-1] : null;
+  const prevW = ymwSeries.length > 1 ? ymwSeries[ymwSeries.length-2] : null;
+
+  const lines = [];
+  lines.push(`PERFORMANCE SUMMARY (current selections)`);
+  lines.push(`- Audit count: ${audits}`);
+  lines.push(`- Average QA: ${avgQA.toFixed(2)} (Target: ${TARGET_DEFAULT.toFixed(1)})`);
+  lines.push(`- Passing rate: ${passRate.toFixed(2)}%`);
+  lines.push(`- Total Errors: ${totalErrAll.toFixed(0)} (Errors per audit: ${errPerAudit.toFixed(2)})`);
+
+  lines.push(``);
+  if(useWeek && weekCompare){
+    lines.push(`COMPARISON (Selected Weeks)`);
+    lines.push(`- From: ${weekCompare.firstLabel} → To: ${weekCompare.lastLabel}`);
+    lines.push(`- QA change: ${(weekCompare.dScore>=0?'+':'')}${weekCompare.dScore.toFixed(2)} points`);
+    lines.push(`- Passing rate change: ${(weekCompare.dPass>=0?'+':'')}${weekCompare.dPass.toFixed(2)}%`);
+    lines.push(`- Error change: ${(weekCompare.dErr>=0?'+':'')}${weekCompare.dErr.toFixed(0)} (negative is better)`);
+
+    if(prevW && lastW){
+      const dS = lastW.avgScore - prevW.avgScore;
+      const dE = lastW.errTotal - prevW.errTotal;
+      const dP = lastW.pass - prevW.pass;
+      lines.push(``);
+      lines.push(`ONE-BEFORE CHECK (last WED vs previous WED)`);
+      lines.push(`- ${prevW.y} • ${prevW.m} • ${prevW.w} → ${lastW.y} • ${lastW.m} • ${lastW.w}`);
+      lines.push(`- QA: ${(dS>=0?'+':'')}${dS.toFixed(2)} | Pass: ${(dP>=0?'+':'')}${dP.toFixed(2)}% | Errors: ${(dE>=0?'+':'')}${dE.toFixed(0)} (down is better)`);
+    }
+  } else if(monthCompare){
+    lines.push(`COMPARISON (Selected Months)`);
+    lines.push(`- From: ${monthCompare.firstLabel} → To: ${monthCompare.lastLabel}`);
+    lines.push(`- QA change: ${(monthCompare.dScore>=0?'+':'')}${monthCompare.dScore.toFixed(2)} points`);
+    lines.push(`- Passing rate change: ${(monthCompare.dPass>=0?'+':'')}${monthCompare.dPass.toFixed(2)}%`);
+    lines.push(`- Error change: ${(monthCompare.dErr>=0?'+':'')}${monthCompare.dErr.toFixed(0)} (negative is better)`);
+  } else {
+    lines.push(`COMPARISON`);
+    lines.push(`- Select at least 2 weeks or 2 months to show comparisons.`);
+  }
+
+  lines.push(``);
+  lines.push(`SEGMENT CALLOUTS (current selection)`);
+  function printCallout(c){
+    lines.push(`- ${c.label}: Lowest QA`);
+    c.below.forEach(x=> lines.push(`  • ${x.name}: ${x.avgQA.toFixed(2)} (Audits: ${x.audits}, Pass: ${x.pass.toFixed(2)}%, Errors: ${x.errors.toFixed(0)})`));
+    lines.push(`- ${c.label}: Highest Errors`);
+    c.mostErr.forEach(x=> lines.push(`  • ${x.name}: Errors ${x.errors.toFixed(0)} (Avg QA: ${x.avgQA.toFixed(2)}, Audits: ${x.audits}, Pass: ${x.pass.toFixed(2)}%)`));
+  }
+  printCallout(callTeam);
+  printCallout(callAcct);
+  printCallout(callPhase);
+
+  lines.push(``);
+  lines.push(`CSR INSIGHTS (current selection)`);
+  lines.push(`- Top CSRs by QA:`);
+  topCSR.forEach(x=> lines.push(`  • ${x.name}: QA ${x.avgQA.toFixed(2)} | Pass ${x.pass.toFixed(2)}% | Errors ${x.errors.toFixed(0)} | Audits ${x.audits}`));
+  lines.push(`- Lowest CSRs by QA:`);
+  lowCSR.forEach(x=> lines.push(`  • ${x.name}: QA ${x.avgQA.toFixed(2)} | Pass ${x.pass.toFixed(2)}% | Errors ${x.errors.toFixed(0)} | Audits ${x.audits}`));
+  lines.push(`- Highest error CSRs:`);
+  errCSR.forEach(x=> lines.push(`  • ${x.name}: Errors ${x.errors.toFixed(0)} | QA ${x.avgQA.toFixed(2)} | Audits ${x.audits}`));
+
+  lines.push(``);
+  lines.push(`PARAMETERS (averages include 0 scores):`);
+  lines.push(`- Strongest: ${bestParams.map(p=>`${p.name} ${p.val.toFixed(2)}`).join(" | ")}`);
+  lines.push(`- Needs focus: ${worstParams.map(p=>`${p.name} ${p.val.toFixed(2)}`).join(" | ")}`);
+
+  lines.push(``);
+  lines.push(`TOP ERROR DRIVERS (EC totals):`);
+  if(topEC.length) topEC.forEach(x=> lines.push(`- ${x.name}: ${x.val.toFixed(0)}`));
+  else lines.push(`- No EC errors found for current selection.`);
+
+  // NEW: Root cause
+  lines.push(``);
+  lines.push(`ROOT CAUSE (data-driven hypotheses)`);
+  const rc = [];
+  if(worstParams[0]) rc.push(`Skill gap likely in “${worstParams[0].name}” (lowest parameter average ${worstParams[0].val.toFixed(2)}).`);
+  if(worstParams[1]) rc.push(`Secondary weakness in “${worstParams[1].name}” (avg ${worstParams[1].val.toFixed(2)}), may be pulling QA down across calls.`);
+  if(topEC[0]) rc.push(`Most frequent defect source appears to be “${topEC[0].name}” (EC count ${topEC[0].val.toFixed(0)}).`);
+  if(topEC[1]) rc.push(`Next biggest driver is “${topEC[1].name}” (EC count ${topEC[1].val.toFixed(0)}).`);
+  if(useWeek && prevW && lastW && (lastW.errTotal - prevW.errTotal) > 0){
+    rc.push(`Recent increase in errors (last WED vs previous) suggests a new or recurring behavior issue; confirm via error share earliest vs latest.`);
+  }
+  if(!rc.length) rc.push(`No dominant root cause surfaced (insufficient variation or no EC counts).`);
+  rc.slice(0,6).forEach(x=> lines.push(`- ${x}`));
+
+  // NEW: Action plan
+  lines.push(``);
+  lines.push(`ACTION PLAN (next 7–14 days)`);
+  const ap = [];
+  if(worstParams[0]) ap.push(`Coaching: Create 1-page job aid for “${worstParams[0].name}” + run 15-min huddle. Track next week’s parameter avg + pass rate.`);
+  if(topEC[0]) ap.push(`Defect control: Build a quick checklist for “${topEC[0].name}” + add it to coaching notes. Target: reduce this EC by 10–20% in next selected period.`);
+  ap.push(`Targeted sampling: Pull 10 audits from the lowest 3 CSRs and tag the specific EC drivers (use Error Share table + Opps Tracker tab if available).`);
+  ap.push(`Calibration: Review 5 “lowest QA” audits with TLs to align scoring and reduce repeat misses.`);
+  if(useWeek) ap.push(`Weekly tracking: Compare earliest vs latest WED each week and confirm improvement via (1) QA, (2) pass rate, (3) top EC share.`);
+  ap.slice(0,8).forEach((x,i)=> lines.push(`${i+1}. ${x}`));
+
+  return lines.join("\n");
+}
+
+/* =========================
+   KPIs + RENDER ALL
+========================= */
+function renderKPIs(){
+  const rows = state.filtered;
+  const avgScore = rows.length ? avg(rows.map(scoreOf)) : 0;
+  els.kAvgScore.textContent = rows.length ? avgScore.toFixed(2) : '—';
+  els.kAudits.textContent = String(rows.length);
+
+  const scope =
+    `${state.filters.account?.size ?? 0} Accounts • ` +
+    `${state.filters.batch?.size ?? 0} Batches • ` +
+    `${state.filters.team?.size ?? 0} Teams • ` +
+    `${state.filters.phase?.size ?? 0} Phases • ` +
+    `${state.filters.auditor?.size ?? 0} Auditors`;
+  els.kScope.textContent = scope;
+
+  els.kDateScope.textContent =
+    `${state.date.yearsSelected.size} Years • ${state.date.monthsSelected.size} Months • ${state.date.wedsSelected.size} WED (AND mode)`;
+
+  updateAnalysisScopePill();
+}
+function renderAll(){
+  renderKPIs();
+
+  fillYMWTrendTable(els.trendYMW, state.filtered);
+  fillPerfTable(els.phaseW, buildPerfRows(state.filtered, COL.phase));
+  fillPerfTable(els.accW, buildPerfRows(state.filtered, COL.account));
+  fillPerfTable(els.teamW, buildPerfRows(state.filtered, COL.team));
+  fillPerfTable(els.batchW, buildPerfRows(state.filtered, COL.batch));
+
+  renderCSRParameterAverages();
+  renderL4CallSummary();
+
+  renderMonthly();
+  fillPerfTable(els.accM, buildPerfRows(state.filtered, COL.account));
+  fillPerfTable(els.teamM, buildPerfRows(state.filtered, COL.team));
+  fillPerfTable(els.batchM, buildPerfRows(state.filtered, COL.batch));
+
+  renderParamTotals();
+  renderErrorShareComparison();
+
+  renderNames();
+
+  updateChartScopePill();
+  if(document.getElementById('panel-charts').classList.contains('active')) drawTrendChart();
+}
+
+/* =========================
+   CHARTS (Offline Canvas line chart) + HOVER TOOLTIP
+========================= */
+let _chartPointsCache = []; // {x,y,xLabel,yVal,audits}
+function updateChartScopePill(){
+  const rows = state.filtered || [];
+  els.chartScopePill.textContent = rows.length ? `Rows: ${rows.length} • EC cols: ${state.ecCols.length}` : '—';
+}
+function buildSeriesForChart(){
+  const rows = state.filtered || [];
+  const metric = els.chartMetric.value || 'qa';
+  const gran = els.chartGran.value || 'auto';
+
+  let mode = 'weekly';
+  if(gran === 'weekly') mode = 'weekly';
+  if(gran === 'monthly') mode = 'monthly';
+  if(gran === 'auto'){
+    const hasMultiW = (state.date.wedsSelected?.size ?? 0) > 1;
+    const hasMultiM = (state.date.monthsSelected?.size ?? 0) > 1;
+    mode = (hasMultiW || !hasMultiM) ? 'weekly' : 'monthly';
+  }
+
+  const { g, keys, labelFn } = buildTimeSeriesKeys(rows, mode);
+
+  const points = keys.map(k=>{
+    const items = g.get(k) || [];
+    const audits = items.length || 0;
+    const qa = audits ? avg(items.map(scoreOf)) : 0;
+    const err = audits ? sum(items.map(totalErrors)) : 0;
+    const pass = audits ? (items.filter(r=>scoreOf(r)>=TARGET_DEFAULT).length / audits) * 100 : 0;
+
+    let y = qa;
+    let yLabel = "Avg QA";
+    if(metric === 'errors'){ y = err; yLabel = "Total Errors"; }
+    if(metric === 'pass'){ y = pass; yLabel = "Passing Rate (%)"; }
+
+    return { xLabel: labelFn(k), y, audits };
+  });
+
+  return { mode, metric, yLabel: (metric==='qa'?'Average QA':metric==='errors'?'Total Errors':'Passing Rate (%)'), points };
+}
+
+function drawTrendChart(){
+  const ctx = els.trendCanvas.getContext('2d');
+  const W = els.trendCanvas.width;
+  const H = els.trendCanvas.height;
+
+  ctx.clearRect(0,0,W,H);
+  _chartPointsCache = [];
+  hideTooltip();
+
+  const { points, yLabel, mode } = buildSeriesForChart();
+  if(!points.length){
+    ctx.font = "16px Segoe UI, Arial";
+    ctx.fillText("No data for current selection.", 20, 40);
+    return;
+  }
+
+  const padL = 60, padR = 20, padT = 30, padB = 60;
+  const plotW = W - padL - padR;
+  const plotH = H - padT - padB;
+
+  const ys = points.map(p=>p.y);
+  let yMin = Math.min(...ys);
+  let yMax = Math.max(...ys);
+  if(yMin === yMax){ yMin -= 1; yMax += 1; }
+  const yPad = (yMax - yMin) * 0.08;
+  yMin -= yPad; yMax += yPad;
+
+  const xCount = points.length;
+  const xAt = (i)=> padL + (xCount===1 ? plotW/2 : (i*(plotW/(xCount-1))));
+  const yAt = (v)=> padT + ( (yMax - v) * (plotH/(yMax - yMin)) );
+
+  // Axes
+  ctx.strokeStyle = "#d9e2ef";
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(padL, padT);
+  ctx.lineTo(padL, padT + plotH);
+  ctx.lineTo(padL + plotW, padT + plotH);
+  ctx.stroke();
+
+  // Title
+  ctx.fillStyle = "#13213c";
+  ctx.font = "16px Segoe UI, Arial";
+  const title = `${yLabel} Trend • ${mode === 'weekly' ? 'Weekly' : 'Monthly'} (filtered)`;
+  ctx.fillText(title, padL, 20);
+
+  // Y ticks
+  ctx.fillStyle = "#5b6b86";
+  ctx.font = "12px Segoe UI, Arial";
+  const ticks = 5;
+  for(let t=0;t<=ticks;t++){
+    const v = yMin + (t*(yMax-yMin)/ticks);
+    const y = yAt(v);
+    ctx.strokeStyle = "#eef2f7";
+    ctx.beginPath();
+    ctx.moveTo(padL, y);
+    ctx.lineTo(padL + plotW, y);
+    ctx.stroke();
+
+    ctx.fillStyle = "#5b6b86";
+    ctx.fillText((v).toFixed(2), 8, y+4);
+  }
+
+  // Line
+  ctx.strokeStyle = "#243a8f";
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  points.forEach((p,i)=>{
+    const x = xAt(i);
+    const y = yAt(p.y);
+    if(i===0) ctx.moveTo(x,y);
+    else ctx.lineTo(x,y);
+  });
+  ctx.stroke();
+
+  // Points + cache for hover
+  ctx.fillStyle = "#243a8f";
+  points.forEach((p,i)=>{
+    const x = xAt(i);
+    const y = yAt(p.y);
+    ctx.beginPath();
+    ctx.arc(x,y,3,0,Math.PI*2);
+    ctx.fill();
+    _chartPointsCache.push({ x, y, xLabel:p.xLabel, yVal:p.y, audits:p.audits, yLabel });
+  });
+
+  // X labels
+  const maxLabels = 10;
+  const step = Math.max(1, Math.ceil(points.length / maxLabels));
+  ctx.fillStyle = "#5b6b86";
+  ctx.font = "11px Segoe UI, Arial";
+  for(let i=0;i<points.length;i+=step){
+    const x = xAt(i);
+    const lbl = points[i].xLabel;
+    ctx.save();
+    ctx.translate(x, padT + plotH + 40);
+    ctx.rotate(-0.55);
+    ctx.textAlign = "right";
+    ctx.fillText(lbl, 0, 0);
+    ctx.restore();
+  }
+}
+
+// hover interactions
+function hideTooltip(){
+  els.chartTooltip.style.display = 'none';
+}
+function showTooltipAt(px, py, title, r1, r2){
+  els.ttTitle.textContent = title;
+  els.ttRow1.textContent = r1;
+  els.ttRow2.textContent = r2;
+
+  const wrap = els.trendCanvas.parentElement; // .canvasWrap
+  const rect = wrap.getBoundingClientRect();
+
+  // keep tooltip within box
+  const tip = els.chartTooltip;
+  tip.style.display = 'block';
+  const tipRect = tip.getBoundingClientRect();
+  let left = px + 14;
+  let top  = py + 14;
+
+  const maxL = rect.width - tipRect.width - 8;
+  const maxT = rect.height - tipRect.height - 8;
+  left = Math.max(8, Math.min(left, maxL));
+  top  = Math.max(8, Math.min(top, maxT));
+
+  tip.style.left = left + "px";
+  tip.style.top  = top + "px";
+}
+
+els.trendCanvas.addEventListener('mouseleave', ()=> hideTooltip());
+els.trendCanvas.addEventListener('mousemove', (e)=>{
+  if(!_chartPointsCache.length) return;
+  const rect = els.trendCanvas.getBoundingClientRect();
+  const scaleX = els.trendCanvas.width / rect.width;
+  const scaleY = els.trendCanvas.height / rect.height;
+
+  const mx = (e.clientX - rect.left) * scaleX;
+  const my = (e.clientY - rect.top) * scaleY;
+
+  // nearest point by distance
+  let best=null, bestD=999999;
+  for(const p of _chartPointsCache){
+    const dx = p.x - mx;
+    const dy = p.y - my;
+    const d = Math.sqrt(dx*dx + dy*dy);
+    if(d < bestD){ bestD = d; best = p; }
+  }
+
+  // only show if cursor is close enough
+  if(best && bestD <= 22){
+    const displayX = (e.clientX - rect.left); // in CSS px
+    const displayY = (e.clientY - rect.top);
+    const v = Number.isFinite(best.yVal) ? best.yVal.toFixed(2) : String(best.yVal);
+    showTooltipAt(displayX, displayY, best.xLabel, `${best.yLabel}: ${v}`, `Audits: ${best.audits}`);
+  } else {
+    hideTooltip();
+  }
+});
+
+/* =========================
+   EXPORT/IMPORT JSON
+========================= */
+function exportDataJSON(){
+  const payload = { exported_at:new Date().toISOString(), columns:state.columns, rows:state.raw };
+  const blob = new Blob([JSON.stringify(payload)], {type:"application/json"});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `qa_dashboard_data_${new Date().toISOString().slice(0,10)}.json`;
+  document.body.appendChild(a); a.click(); a.remove();
+  URL.revokeObjectURL(a.href);
+}
+async function importDataJSON(e){
+  const file = e.target.files?.[0];
+  if(!file) return;
+  try{
+    const payload = JSON.parse(await file.text());
+    if(!payload || !Array.isArray(payload.columns) || !Array.isArray(payload.rows)){
+      alert("Invalid JSON file. It must contain: columns[] and rows[]");
+      return;
+    }
+    loadDataset(payload.columns, payload.rows, {source:`JSON: ${file.name}`});
+  } catch(err){
+    console.error(err);
+    alert("Could not import JSON. File might be corrupted.");
+  } finally {
+    els.importJSONInput.value="";
+  }
+}
+
+/* =========================
+   OFFLINE SAVE (QA)
+========================= */
+function autoSaveToBrowser(source){
+  try{
+    const payload = { saved_at:new Date().toISOString(), source:source||"Loaded", columns:state.columns, rows:state.raw };
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
+    els.saveBadge.style.display = '';
+    els.saveBadge.className = 'pill ok';
+    els.saveBadge.textContent = `Saved offline (this browser) • ${payload.saved_at.slice(0,19).replace('T',' ')}`;
+  } catch(err){
+    els.saveBadge.style.display = '';
+    els.saveBadge.className = 'pill';
+    els.saveBadge.textContent = `Could not auto-save (storage blocked)`;
+  }
+}
+function tryLoadFromBrowser(){
+  try{
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if(!raw) return false;
+    const payload = JSON.parse(raw);
+    if(!payload || !Array.isArray(payload.columns) || !Array.isArray(payload.rows)) return false;
+    loadDataset(payload.columns, payload.rows, {source:`Auto-loaded (offline saved)`});
+    return true;
+  } catch(err){ return false; }
+}
+function tryLoadOppsFromBrowser(){
+  try{
+    const raw = localStorage.getItem(OPPS_STORAGE_KEY);
+    if(!raw) return false;
+    const payload = JSON.parse(raw);
+    if(!payload || !Array.isArray(payload.columns) || !Array.isArray(payload.rows)) return false;
+    opps.columns = payload.columns;
+    opps.raw = payload.rows;
+
+    els.oppsBadge.style.display = '';
+    els.oppsBadge.className = 'pill ok';
+    els.oppsBadge.textContent = `Opps auto-loaded • ${opps.raw.length} rows • Saved offline`;
+
+    applyOppsFilters();
+    renderOppsAll();
+    return true;
+  } catch(err){ return false; }
+}
+
+/* =========================
+   CONTROLS
+========================= */
+function enableControls(on){
+  els.btnReset.disabled=!on;
+  els.btnClear.disabled=!on;
+  els.btnSelectAllFilters.disabled=!on;
+  els.btnClearAllFilters.disabled=!on;
+  els.btnExpandAll.disabled=!on;
+  els.btnCollapseAll.disabled=!on;
+  els.btnExportJSON.disabled=!on;
+  els.btnAnalyze.disabled=!on;
+}
+function clearData(){
+  state.raw=[]; state.filtered=[]; state.columns=[]; state.ecCols=[]; state.filters={};
+  state.date.yearsSelected=new Set();
+  state.date.monthsSelected=new Set();
+  state.date.wedsSelected=new Set();
+
+  opps.raw=[]; opps.columns=[]; opps.filtered=[];
+  els.oppsBadge.style.display='none';
+
+  els.fileInput.value='';
+  els.filtersCol.innerHTML='';
+  enableControls(false);
+
+  els.kAvgScore.textContent='—';
+  els.kAudits.textContent='0';
+  els.kScope.textContent='—';
+  els.kDateScope.textContent='—';
+
+  els.trendYMW.innerHTML='';
+  els.phaseW.innerHTML='';
+  els.accW.innerHTML='';
+  els.teamW.innerHTML='';
+  els.batchW.innerHTML='';
+  els.monthlyBody.innerHTML='';
+  els.accM.innerHTML='';
+  els.teamM.innerHTML='';
+  els.batchM.innerHTML='';
+  els.csrParamBody.innerHTML='';
+  els.csrParamFoot.innerHTML='';
+  els.l4CallsBody.innerHTML='';
+  els.paramTotalsBody.innerHTML='';
+
+  els.errShareATbody.innerHTML='';
+  els.errShareBTbody.innerHTML='';
+  els.errShareATfoot.innerHTML='';
+  els.errShareBTfoot.innerHTML='';
+  els.errShareLabelA.textContent='—';
+  els.errShareLabelB.textContent='—';
+
+  els.namesBody.innerHTML='';
+
+  els.analysisBox.value = "";
+  els.btnCopyAnalysis.disabled = true;
+  els.analysisScopePill.textContent = "—";
+
+  els.saveBadge.style.display='none';
+  setStatus('Cleared. Upload CSV/TSV or Import JSON to start.');
+
+  const ctx = els.trendCanvas.getContext('2d');
+  ctx.clearRect(0,0,els.trendCanvas.width, els.trendCanvas.height);
+  els.chartScopePill.textContent='—';
+
+  // opps tables
+  clearOppsUI();
+}
+
+/* =========================
+   OPPS FILTERING (CONNECTS TO CURRENT FILTERS)
+========================= */
+function oppsResolve(colName){
+  const want = normHeader(colName);
+  return opps.columns.find(c => normHeader(c) === want) || null;
+}
+function parseOppsYearFromMonth(monthText){
+  // e.g., "Aug-25" -> 2025
+  const s = toStr(monthText);
+  const m = s.match(/-(\d{2,4})$/);
+  if(!m) return "";
+  const yy = m[1];
+  if(yy.length===4) return yy;
+  const n = Number(yy);
+  if(!Number.isFinite(n)) return "";
+  return String(2000 + n);
+}
+function extractSelectedWEDStrings(){
+  // from QA date keys, take the W part (WE****)
+  const out = new Set();
+  for(const k of state.date.wedsSelected){
+    const parts = splitYMW(k);
+    if(parts?.w) out.add(String(parts.w).trim());
+  }
+  return out;
+}
+function extractSelectedMonthTexts(){
+  // from QA month keys, take m part
+  const out = [];
+  for(const k of state.date.monthsSelected){
+    const parts = splitYM(k);
+    if(parts?.m) out.push(String(parts.m).trim());
+  }
+  return new Set(out);
+}
+function extractSelectedYearStrings(){
+  return new Set(Array.from(state.date.yearsSelected).map(x=>String(x).trim()));
+}
+
+function applyOppsFilters(){
+  if(!opps.raw || !opps.raw.length){
+    opps.filtered = [];
+    return;
+  }
+
+  const accSet  = state.filters.account || new Set();
+  const batchSet= state.filters.batch || new Set();
+  const teamSet = state.filters.team || new Set(); // map to TL
+
+  const hasY = state.date.yearsSelected.size > 0;
+  const hasM = state.date.monthsSelected.size > 0;
+  const hasW = state.date.wedsSelected.size > 0;
+
+  const selWeds = extractSelectedWEDStrings();
+  const selMonths = extractSelectedMonthTexts();
+  const selYears = extractSelectedYearStrings();
+
+  const cAcc   = oppsResolve(opps.COL.account) || opps.COL.account;
+  const cBatch = oppsResolve(opps.COL.batch) || opps.COL.batch;
+  const cTL    = oppsResolve(opps.COL.tl) || opps.COL.tl;
+  const cWWED  = oppsResolve(opps.COL.wed) || opps.COL.wed;
+  const cMonth = oppsResolve(opps.COL.month) || opps.COL.month;
+
+  opps.filtered = opps.raw.filter(r=>{
+    // Account (must have selection on QA side)
+    if(accSet.size && !accSet.has(toStr(r[cAcc]))) return false;
+    // Batch
+    if(batchSet.size && !batchSet.has(toStr(r[cBatch]))) return false;
+    // Team -> TL mapping
+    if(teamSet.size && !teamSet.has(toStr(r[cTL]))) return false;
+
+    // Date best-effort:
+    // - if WED selected, match WWED directly
+    // - if Month selected, match Month text directly
+    // - if Year selected, derive year from Month (Aug-25 -> 2025) and match
+    const ww = toStr(r[cWWED]);
+    const mm = toStr(r[cMonth]);
+    const yy = parseOppsYearFromMonth(mm);
+
+    if(hasW && selWeds.size && !selWeds.has(ww)) return false;
+    if(hasM && selMonths.size && !selMonths.has(mm)) return false;
+
+    if(hasY && selYears.size){
+      // match full year OR last-2 digits
+      const ok = Array.from(selYears).some(y=>{
+        const y2 = y.slice(-2);
+        return (yy && (yy === y || yy.slice(-2) === y2)) || (yy==="" && y==="");
+      });
+      if(!ok) return false;
+    }
+
+    // if user cleared all date selections, show nothing
+    if(!hasY && !hasM && !hasW) return false;
+
+    return true;
+  });
+}
+
+/* =========================
+   OPPS RENDER
+========================= */
+function clearOppsUI(){
+  els.kOppsRows.textContent = '—';
+  els.kOppsPts.textContent = '—';
+  els.kOppsAvg.textContent = '—';
+  els.kOppsScope.textContent = '—';
+  els.oppsParamBody.innerHTML = '';
+  els.oppsParamFoot.innerHTML = '';
+  els.oppsSubBody.innerHTML = '';
+  els.oppsNameBody.innerHTML = '';
+  els.oppsTLBody.innerHTML = '';
+  els.oppsNotesBody.innerHTML = '';
+  els.oppsParamPick.innerHTML = `<option value="__ALL__">All Parameters</option>`;
+}
+
+function renderOppsAll(){
+  if(!document.getElementById('panel-opps')) return;
+
+  if(!opps.raw || !opps.raw.length){
+    clearOppsUI();
+    els.kOppsScope.textContent = "Upload Opps Tracker CSV to populate this tab.";
+    return;
+  }
+
+  const rows = opps.filtered || [];
+  const cParam = oppsResolve(opps.COL.param) || opps.COL.param;
+  const cSub   = oppsResolve(opps.COL.subparam) || opps.COL.subparam;
+  const cPts   = oppsResolve(opps.COL.pts) || opps.COL.pts;
+  const cName  = oppsResolve(opps.COL.name) || opps.COL.name;
+  const cTL    = oppsResolve(opps.COL.tl) || opps.COL.tl;
+
+  const totalRows = rows.length;
+  const totalPts  = sum(rows.map(r=>asNumber(r[cPts])));
+  const avgPts    = totalRows ? (totalPts/totalRows) : 0;
+
+  els.kOppsRows.textContent = String(totalRows);
+  els.kOppsPts.textContent  = totalPts.toFixed(2);
+  els.kOppsAvg.textContent  = avgPts.toFixed(2);
+
+  const scope =
+    `Connected filters → Account:${state.filters.account?.size ?? 0} • Batch:${state.filters.batch?.size ?? 0} • Team(TL):${state.filters.team?.size ?? 0} • Date:${state.date.yearsSelected.size}Y/${state.date.monthsSelected.size}M/${state.date.wedsSelected.size}W`;
+  els.kOppsScope.textContent = scope;
+
+  // Parameter summary (by points lost)
+  const gParam = groupBy(rows, r=>toStr(r[cParam]) || '(Blank)');
+  const paramList = [];
+  for(const [p, items] of gParam.entries()){
+    const pts = sum(items.map(x=>asNumber(x[cPts])));
+    paramList.push({ p, cnt: items.length, pts });
+  }
+  paramList.sort((a,b)=>b.pts-a.pts || b.cnt-a.cnt || a.p.localeCompare(b.p));
+
+  els.oppsParamBody.innerHTML = '';
+  paramList.slice(0,60).forEach(x=>{
+    const share = totalPts ? (x.pts/totalPts)*100 : 0;
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td>${escapeHtml(x.p)}</td><td>${x.cnt}</td><td><b>${x.pts.toFixed(2)}</b></td><td>${share.toFixed(2)}%</td>`;
+    els.oppsParamBody.appendChild(tr);
+  });
+  els.oppsParamFoot.innerHTML = `
+    <tr>
+      <td><b>TOTAL</b></td>
+      <td><b>${totalRows}</b></td>
+      <td><b>${totalPts.toFixed(2)}</b></td>
+      <td><b>100%</b></td>
+    </tr>
+  `;
+
+  // parameter dropdown
+  const currentPick = els.oppsParamPick.value || "__ALL__";
+  const uniqueParams = uniq(paramList.map(x=>x.p));
+  els.oppsParamPick.innerHTML = `<option value="__ALL__">All Parameters</option>` + uniqueParams.map(p=>`<option value="${escapeHtml(p)}">${escapeHtml(p)}</option>`).join("");
+  // try to preserve selection
+  if(uniqueParams.includes(currentPick)) els.oppsParamPick.value = currentPick;
+  else els.oppsParamPick.value = "__ALL__";
+
+  // Sub-parameter summary
+  const pick = els.oppsParamPick.value || "__ALL__";
+  const subRows = (pick==="__ALL__") ? rows : rows.filter(r=>toStr(r[cParam])===pick);
+
+  const gSub = groupBy(subRows, r=> `${toStr(r[cSub]) || '(Blank)'}||${toStr(r[cParam]) || '(Blank)'}`);
+  const subList = [];
+  for(const [k, items] of gSub.entries()){
+    const [sp, p] = k.split("||");
+    subList.push({
+      sp, p,
+      cnt: items.length,
+      pts: sum(items.map(x=>asNumber(x[cPts])))
+    });
+  }
+  subList.sort((a,b)=>b.pts-a.pts || b.cnt-a.cnt || a.sp.localeCompare(b.sp));
+
+  els.oppsSubBody.innerHTML = '';
+  subList.slice(0,120).forEach(x=>{
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td>${escapeHtml(x.sp)}</td><td>${escapeHtml(x.p)}</td><td>${x.cnt}</td><td><b>${x.pts.toFixed(2)}</b></td>`;
+    els.oppsSubBody.appendChild(tr);
+  });
+
+  // Name impact
+  const gName = groupBy(rows, r=>toStr(r[cName]) || '(Blank)');
+  const nameList = [];
+  for(const [n, items] of gName.entries()){
+    nameList.push({ n, cnt: items.length, pts: sum(items.map(x=>asNumber(x[cPts]))) });
+  }
+  nameList.sort((a,b)=>b.pts-a.pts || b.cnt-a.cnt || a.n.localeCompare(b.n));
+  els.oppsNameBody.innerHTML = '';
+  nameList.slice(0,30).forEach(x=>{
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td>${escapeHtml(x.n)}</td><td>${x.cnt}</td><td><b>${x.pts.toFixed(2)}</b></td>`;
+    els.oppsNameBody.appendChild(tr);
+  });
+
+  // TL impact
+  const gTL = groupBy(rows, r=>toStr(r[cTL]) || '(Blank)');
+  const tlList = [];
+  for(const [t, items] of gTL.entries()){
+    tlList.push({ t, cnt: items.length, pts: sum(items.map(x=>asNumber(x[cPts]))) });
+  }
+  tlList.sort((a,b)=>b.pts-a.pts || b.cnt-a.cnt || a.t.localeCompare(b.t));
+  els.oppsTLBody.innerHTML = '';
+  tlList.slice(0,30).forEach(x=>{
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td>${escapeHtml(x.t)}</td><td>${x.cnt}</td><td><b>${x.pts.toFixed(2)}</b></td>`;
+    els.oppsTLBody.appendChild(tr);
+  });
+
+  // Notes
+  const cAcc   = oppsResolve(opps.COL.account) || opps.COL.account;
+  const cBatch = oppsResolve(opps.COL.batch) || opps.COL.batch;
+  const cWWED  = oppsResolve(opps.COL.wed) || opps.COL.wed;
+  const cMonth = oppsResolve(opps.COL.month) || opps.COL.month;
+  const cComm  = oppsResolve(opps.COL.comment) || opps.COL.comment;
+
+  els.oppsNotesBody.innerHTML = '';
+  rows.slice(0,200).forEach(r=>{
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${escapeHtml(toStr(r[cAcc]))}</td>
+      <td>${escapeHtml(toStr(r[cBatch]))}</td>
+      <td>${escapeHtml(toStr(r[cTL]))}</td>
+      <td>${escapeHtml(toStr(r[cName]))}</td>
+      <td>${escapeHtml(toStr(r[cWWED]))}</td>
+      <td>${escapeHtml(toStr(r[cMonth]))}</td>
+      <td>${escapeHtml(toStr(r[cParam]))}</td>
+      <td>${escapeHtml(toStr(r[cSub]))}</td>
+      <td><b>${asNumber(r[cPts]).toFixed(2)}</b></td>
+      <td style="white-space:normal;min-width:420px">${escapeHtml(toStr(r[cComm]))}</td>
+    `;
+    els.oppsNotesBody.appendChild(tr);
+  });
+}
+
+els.oppsParamPick.addEventListener('change', ()=>{
+  renderOppsAll();
+});
+
+/* =========================
+   START
+========================= */
+setStatus('Tip: If you loaded data before, it will auto-load offline in this same browser.');
+enableControls(false);
+els.btnCopyAnalysis.disabled = true;
+tryLoadFromBrowser();
+tryLoadOppsFromBrowser();
+</script>
+
+</body>
+</html>
+
+<footer class="small" style="padding:10px 2px;color:#6b7280;">QADashboard.v021126_cdg</footer>
